@@ -26,7 +26,8 @@ jobs:
           script: |
             set -euo pipefail
 
-            export PATH="$HOME/.npm-global/bin:$PATH"
+            export PNPM_HOME="$HOME/.local/share/pnpm"
+            export PATH="$PNPM_HOME:$PATH"
 
             APP_DIR="${{ secrets.DEPLOY_PATH }}"
             APP_NAME="${{ secrets.PM2_APP_NAME }}"
@@ -43,13 +44,18 @@ jobs:
             git checkout "$BRANCH"
             git pull --ff-only origin "$BRANCH"
 
-            npm ci
-            npm run build
+            if ! command -v pnpm >/dev/null 2>&1; then
+              curl -fsSL https://get.pnpm.io/install.sh | sh -
+              export PATH="$PNPM_HOME:$PATH"
+            fi
+
+            pnpm install --frozen-lockfile
+            pnpm build
 
             if [ -n "$APP_NAME" ] && pm2 describe "$APP_NAME" >/dev/null 2>&1; then
               PORT="$APP_PORT" pm2 reload "$APP_NAME" --update-env
             elif [ -n "$APP_NAME" ]; then
-              PORT="$APP_PORT" pm2 start npm --name "$APP_NAME" -- start
+              PORT="$APP_PORT" pm2 start pnpm --name "$APP_NAME" -- start
             else
               echo "PM2_APP_NAME is empty"
               exit 1
