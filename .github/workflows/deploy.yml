@@ -22,6 +22,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
+          APP_PORT: ${{ secrets.APP_PORT }}
           script_stop: true
           script: |
             set -euo pipefail
@@ -46,9 +47,9 @@ jobs:
             npm run build
 
             if [ -n "$APP_NAME" ] && pm2 describe "$APP_NAME" >/dev/null 2>&1; then
-              pm2 reload "$APP_NAME" --update-env
+              PORT="$APP_PORT" pm2 reload "$APP_NAME" --update-env
             elif [ -n "$APP_NAME" ]; then
-              pm2 start npm --name "$APP_NAME" -- start
+              PORT="$APP_PORT" pm2 start npm --name "$APP_NAME" -- start
             else
               echo "PM2_APP_NAME is empty"
               exit 1
