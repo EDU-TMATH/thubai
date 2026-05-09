@@ -46,7 +46,21 @@ export type SubmissionHistoryInput = {
 };
 
 let sqlJsPromise: Promise<SqlJsStatic> | null = null;
-let writeLock = Promise.resolve();
+
+/**
+ * File-level lock to ensure atomic reads/writes of the SQLite database file.
+ * 
+ * CONCURRENCY SAFETY:
+ * All database operations (both reads and writes) acquire this lock before file access.
+ * This prevents:
+ * - Concurrent reads from loading partially-written data
+ * - Race conditions where User A's data could be returned for User B's query
+ * - Database file corruption under high concurrent load
+ * 
+ * The lock ensures operations are serialized at the file level, not in-memory.
+ * sql.js creates a new in-memory instance per operation, so file access must be protected.
+ */
+let fileLock = Promise.resolve();
 
 function getSqlJs() {
   if (!sqlJsPromise) {
@@ -56,6 +70,15 @@ function getSqlJs() {
   }
 
   return sqlJsPromise;
+}
+
+async function withFileLock<T>(task: () => Promise<T>): Promise<T> {
+  const run = fileLock.then(task);
+  fileLock = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
 }
 
 function ensureSchema(db: SqlJsDatabase) {
@@ -117,17 +140,8 @@ function mapRows(result: Array<{ columns: string[]; values: unknown[][] }>): Sub
   });
 }
 
-async function withWriteLock<T>(task: () => Promise<T>) {
-  const run = writeLock.then(task);
-  writeLock = run.then(
-    () => undefined,
-    () => undefined,
-  );
-  return run;
-}
-
 export async function insertSubmissionHistory(input: SubmissionHistoryInput): Promise<void> {
-  await withWriteLock(async () => {
+  await withFileLock(async () => {
     const db = await openDatabase();
     try {
       db.run(
@@ -170,64 +184,72 @@ export async function getSubmissionHistoryForUser(
   username: string,
   limit = 200,
 ): Promise<SubmissionHistoryRow[]> {
-  const db = await openDatabase();
-  try {
-    const rows = db.exec(
-      `
-        SELECT
-          id,
-          submission_id,
-          username,
-          display_name,
-          organization_id,
-          organization_short_name,
-          organization_name,
-          file_count,
-          total_bytes,
-          destination,
-          saved_at,
-          created_at
-        FROM submission_history
-        WHERE username = ?
-        ORDER BY saved_at DESC
-        LIMIT ?
-      `,
-      [username, limit],
-    );
-    return mapRows(rows);
-  } finally {
-    db.close();
-  }
+  console.log("[DB:QUERY] Fetching history for user", { username, limit });
+  
+  return withFileLock(async () => {
+    const db = await openDatabase();
+    try {
+      const rows = db.exec(
+        `
+          SELECT
+            id,
+            submission_id,
+            username,
+            display_name,
+            organization_id,
+            organization_short_name,
+            organization_name,
+            file_count,
+            total_bytes,
+            destination,
+            saved_at,
+            created_at
+          FROM submission_history
+          WHERE username = ?
+          ORDER BY saved_at DESC
+          LIMIT ?
+        `,
+        [username, limit],
+      );
+      const result = mapRows(rows);
+      console.log("[DB:RESULT] History query complete", { username, returnedRows: result.length });
+      return result;
+    } finally {
+      db.close();
+    }
+  });
 }
 
 export async function getSubmissionHistoryAll(limit = 1000): Promise<SubmissionHistoryRow[]> {
-  const db = await openDatabase();
-  try {
-    const rows = db.exec(
-      `
-        SELECT
-          id,
-          submission_id,
-          username,
-          display_name,
-          organization_id,
-          organization_short_name,
-          organization_name,
-          file_count,
-          total_bytes,
-          destination,
-          saved_at,
-          created_at
-        FROM submission_history
-        ORDER BY saved_at DESC
-        LIMIT ?
-      `,
-      [limit],
-    );
-    return mapRows(rows);
-  } finally {
-    db.close();
-  }
+  return withFileLock(async () => {
+    const db = await openDatabase();
+    try {
+      const rows = db.exec(
+        `
+          SELECT
+            id,
+            submission_id,
+            username,
+            display_name,
+            organization_id,
+            organization_short_name,
+            organization_name,
+            file_count,
+            total_bytes,
+            destination,
+            saved_at,
+            created_at
+          FROM submission_history
+          ORDER BY saved_at DESC
+          LIMIT ?
+        `,
+        [limit],
+      );
+      return mapRows(rows);
+    } finally {
+      db.close();
+    }
+  });
 }
 
 export async function deleteSubmissionHistoryById(
@@ -235,7 +257,7 @@ export async function deleteSubmissionHistoryById(
   username: string,
   organizationShortName: string,
 ): Promise<void> {
-  await withWriteLock(async () => {
+  await withFileLock(async () => {
     const db = await openDatabase();
     try {
       db.run(
@@ -255,7 +277,7 @@ export async function deleteSubmissionHistoryById(
 }
 
 export async function deleteAllSubmissionHistory(): Promise<void> {
-  await withWriteLock(async () => {
+  await withFileLock(async () => {
     const db = await openDatabase();
     try {
       db.run("DELETE FROM submission_history;");

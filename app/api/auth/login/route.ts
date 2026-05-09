@@ -36,6 +36,10 @@ export async function POST(request: Request) {
   }
 
   const response = NextResponse.json({ session });
+  
+  // CRITICAL: Clear any existing session cookie before setting new one
+  // This prevents session overlap when previous user's cookie still exists
+  response.cookies.delete(SESSION_COOKIE_NAME);
 
   response.cookies.set({
     name: SESSION_COOKIE_NAME,
@@ -46,6 +50,8 @@ export async function POST(request: Request) {
     path: "/",
     maxAge: 60 * 60 * 8,
   });
+  
+  console.log("[AUTH] Login successful", { username: validation.username });
 
   return response;
 }

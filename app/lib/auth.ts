@@ -68,7 +68,16 @@ export async function getSession(): Promise<UserSession | null> {
   }
 
   const [payload, signature] = token.split(".");
-  if (!payload || !signature || !safeCompare(sign(payload), signature)) {
+  if (!payload || !signature) {
+    return null;
+  }
+  
+  if (!safeCompare(sign(payload), signature)) {
+    // CRITICAL: Signature mismatch - cookie may be corrupted or from different secret
+    console.warn(
+      "[AUTH] Session signature verification failed. Cookie may be stale or corrupted.",
+      { cookieLength: token.length, hasPayload: !!payload, hasSignature: !!signature },
+    );
     return null;
   }
 
@@ -84,17 +93,28 @@ export async function getSession(): Promise<UserSession | null> {
       || !parsed.tokenType
       || !parsed.loginAt
     ) {
+      console.warn("[AUTH] Session validation failed: missing required fields", {
+        hasUsername: !!parsed.username,
+        hasAccessToken: !!parsed.accessToken,
+        hasRefreshToken: !!parsed.refreshToken,
+        hasTokenType: !!parsed.tokenType,
+        hasLoginAt: !!parsed.loginAt,
+      });
       return null;
     }
 
-    return {
+    const session = {
       username: normalizeValue(parsed.username),
       accessToken: parsed.accessToken,
       refreshToken: parsed.refreshToken,
       tokenType: parsed.tokenType,
       loginAt: parsed.loginAt,
     };
-  } catch {
+    
+    console.log("[AUTH] Session loaded successfully", { username: session.username, loginAt: session.loginAt });
+    return session;
+  } catch (error) {
+    console.error("[AUTH] Session parse error:", error instanceof Error ? error.message : error);
     return null;
   }
 }

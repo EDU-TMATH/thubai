@@ -33,7 +33,10 @@ export default async function HistoryPage() {
   }
 
   const currentUser = meResponse.data;
+  console.log("[HISTORY:PAGE] Loading history for", { username: currentUser.username, displayName: currentUser.display_name });
+  
   const rows = await getSubmissionHistoryForUser(currentUser.username);
+  console.log("[HISTORY:PAGE] Loaded history", { username: currentUser.username, rowCount: rows.length });
 
   return (
     <main className="page-grid mx-auto flex w-full max-w-6xl flex-col gap-6">
