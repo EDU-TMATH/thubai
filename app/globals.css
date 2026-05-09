@@ -1,26 +1,70 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #eaf6ff;
+  --foreground: #123047;
+  --surface: rgba(247, 252, 255, 0.82);
+  --surface-strong: rgba(240, 249, 255, 0.94);
+  --line: rgba(34, 102, 153, 0.16);
+  --accent: #2f9de0;
+  --accent-deep: #0f5c94;
+  --accent-soft: #ccecff;
+  --success: #1e7d68;
+  --danger: #a33d31;
+  --shadow: 0 24px 80px rgba(16, 90, 145, 0.15);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-noto-sans);
+  --font-mono: var(--font-noto-sans-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-noto-sans), "Avenir Next", sans-serif;
+  background-image:
+    radial-gradient(circle at top left, rgba(71, 167, 230, 0.28), transparent 34%),
+    radial-gradient(circle at top right, rgba(113, 198, 255, 0.22), transparent 36%),
+    linear-gradient(145deg, #f1f9ff 0%, #e0f1ff 52%, #eef8ff 100%);
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.glass-panel {
+  backdrop-filter: blur(18px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.page-grid {
+  min-height: 100vh;
+  width: 100%;
+  padding: 24px;
+}
+
+@media (min-width: 1024px) {
+  .page-grid {
+    padding: 32px;
+  }
 }
