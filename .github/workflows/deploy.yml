@@ -27,7 +27,7 @@ jobs:
             set -euo pipefail
 
             export PNPM_HOME="$HOME/.local/share/pnpm"
-            export PATH="$PNPM_HOME:$PATH"
+            export PATH="$HOME/.npm-global/bin:$PNPM_HOME:$PATH"
 
             APP_DIR="${{ secrets.DEPLOY_PATH }}"
             APP_NAME="${{ secrets.PM2_APP_NAME }}"
@@ -46,11 +46,11 @@ jobs:
 
             if ! command -v pnpm >/dev/null 2>&1; then
               curl -fsSL https://get.pnpm.io/install.sh | sh -
-              export PATH="$PNPM_HOME:$PATH"
+              export PATH="$HOME/.npm-global/bin:$PNPM_HOME:$PATH"
             fi
 
             pnpm install --frozen-lockfile
-            pnpm build
+            pnpm run build
 
             if [ -n "$APP_NAME" ] && pm2 describe "$APP_NAME" >/dev/null 2>&1; then
               PORT="$APP_PORT" pm2 reload "$APP_NAME" --update-env
