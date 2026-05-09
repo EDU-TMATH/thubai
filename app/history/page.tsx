@@ -40,25 +40,25 @@ export default async function HistoryPage() {
       <section className="glass-panel rounded-4xl px-8 py-10 lg:px-10">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-3">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--accent-deep)]">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-(--accent-deep)">
               Tra cứu lịch sử nộp bài
             </p>
             <h1 className="text-4xl font-semibold leading-tight lg:text-5xl">Lịch sử của bạn</h1>
-            <p className="text-base leading-8 text-[color:rgba(31,26,23,0.74)]">
+            <p className="text-base leading-8 text-[rgba(31,26,23,0.74)]">
               Tài khoản: <span className="font-semibold">{currentUser.display_name}</span> (@{currentUser.username})
             </p>
           </div>
           <div className="flex gap-3">
             <a
               href="/submit"
-              className="rounded-2xl border border-[var(--line)] bg-white/70 px-4 py-2 text-sm font-semibold text-[var(--accent-deep)] transition hover:bg-white"
+              className="rounded-2xl border border-(--line) bg-white/70 px-4 py-2 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
             >
               ← Trang nộp bài
             </a>
             {currentUser.is_superuser && (
               <a
                 href="/admin/history"
-                className="rounded-2xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--accent-deep)]"
+                className="rounded-2xl bg-(--accent) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
               >
                 Xem toàn hệ thống →
               </a>
@@ -69,14 +69,14 @@ export default async function HistoryPage() {
 
       <section className="glass-panel rounded-4xl p-6 lg:p-8">
         {rows.length === 0 ? (
-          <div className="rounded-3xl border border-[var(--line)] bg-white/65 px-6 py-10 text-center text-sm text-[color:rgba(31,26,23,0.68)]">
+          <div className="rounded-3xl border border-(--line) bg-white/65 px-6 py-10 text-center text-sm text-[rgba(31,26,23,0.68)]">
             Bạn chưa có lần nộp bài nào.
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-3xl border border-[var(--line)] bg-white/70">
+          <div className="overflow-x-auto rounded-3xl border border-(--line) bg-white/70">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[var(--line)] bg-white/60 text-left">
+                <tr className="border-b border-(--line) bg-white/60 text-left">
                   <th className="px-4 py-3">Thời gian nộp</th>
                   <th className="px-4 py-3">Tổ chức</th>
                   <th className="px-4 py-3 text-right">Số file</th>
@@ -86,11 +86,11 @@ export default async function HistoryPage() {
               </thead>
               <tbody>
                 {rows.map((row) => (
-                  <tr key={row.id} className="border-b border-[var(--line)] last:border-0">
+                  <tr key={row.id} className="border-b border-(--line) last:border-0">
                     <td className="px-4 py-3">{formatDateTime(row.savedAt)}</td>
                     <td className="px-4 py-3">
                       <div className="font-semibold">{row.organizationShortName}</div>
-                      <div className="text-xs text-[color:rgba(31,26,23,0.65)]">{row.organizationName}</div>
+                      <div className="text-xs text-[rgba(31,26,23,0.65)]">{row.organizationName}</div>
                     </td>
                     <td className="px-4 py-3 text-right">{row.fileCount}</td>
                     <td className="px-4 py-3 text-right">{formatBytes(row.totalBytes)}</td>
