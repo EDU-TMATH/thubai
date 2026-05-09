@@ -229,8 +229,8 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
             onClick={() => setTab(id)}
             className={`flex-1 rounded-[14px] py-2 text-sm font-semibold transition ${
               tab === id
-                ? "bg-[var(--accent)] text-white shadow-sm"
-                : "text-[color:rgba(31,26,23,0.6)] hover:bg-white/80"
+                ? "bg-(--accent) text-white shadow-sm"
+                : "text-[rgba(31,26,23,0.6)] hover:bg-white/80"
             }`}
           >
             {label}
@@ -242,9 +242,9 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
       {tab === "settings" && (
         <div className="space-y-5">
           {/* Time window card */}
-          <div className="rounded-[20px] border border-[var(--line)] bg-white/60 p-5">
+          <div className="rounded-[20px] border border-(--line) bg-white/60 p-5">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent-deep)]">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-(--accent-deep)">
                 Thời gian thu bài
               </h3>
               <span className={`rounded-full px-3 py-0.5 text-xs font-semibold ${windowStatusColor}`}>
@@ -253,40 +253,40 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="space-y-1.5">
-                <span className="block text-xs font-medium text-[color:rgba(31,26,23,0.6)]">
+                <span className="block text-xs font-medium text-[rgba(31,26,23,0.6)]">
                   Bắt đầu
                 </span>
                 <input
                   type="datetime-local"
                   value={startInput}
                   onChange={(e) => setStartInput(e.target.value)}
-                  className="w-full rounded-[14px] border border-[var(--line)] bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40"
+                  className="w-full rounded-[14px] border border-(--line) bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--accent)/40"
                 />
               </label>
               <label className="space-y-1.5">
-                <span className="block text-xs font-medium text-[color:rgba(31,26,23,0.6)]">
+                <span className="block text-xs font-medium text-[rgba(31,26,23,0.6)]">
                   Kết thúc
                 </span>
                 <input
                   type="datetime-local"
                   value={endInput}
                   onChange={(e) => setEndInput(e.target.value)}
-                  className="w-full rounded-[14px] border border-[var(--line)] bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40"
+                  className="w-full rounded-[14px] border border-(--line) bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--accent)/40"
                 />
               </label>
             </div>
-            <p className="mt-3 text-xs text-[color:rgba(31,26,23,0.5)]">
+            <p className="mt-3 text-xs text-[rgba(31,26,23,0.5)]">
               Để trống cả hai ô để mở thu bài không giới hạn thời gian.
             </p>
           </div>
 
           {/* Storage prefix card */}
-          <div className="rounded-[20px] border border-[var(--line)] bg-white/60 p-5">
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent-deep)]">
+          <div className="rounded-[20px] border border-(--line) bg-white/60 p-5">
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-(--accent-deep)">
               Thư mục lưu bài
             </h3>
             <label className="space-y-1.5">
-              <span className="block text-xs font-medium text-[color:rgba(31,26,23,0.6)]">
+              <span className="block text-xs font-medium text-[rgba(31,26,23,0.6)]">
                 Đường dẫn thư mục gốc
               </span>
               <input
@@ -294,10 +294,10 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
                 value={prefixInput}
                 onChange={(e) => setPrefixInput(e.target.value)}
                 placeholder="/tmp"
-                className="w-full rounded-[14px] border border-[var(--line)] bg-white/80 px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40"
+                className="w-full rounded-[14px] border border-(--line) bg-white/80 px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-(--accent)/40"
               />
             </label>
-            <p className="mt-3 text-xs text-[color:rgba(31,26,23,0.5)]">
+            <p className="mt-3 text-xs text-[rgba(31,26,23,0.5)]">
               Bài nộp sẽ được lưu vào <code className="font-mono">{prefixInput || "/tmp"}
               /&lt;tổ-chức&gt;/&lt;tài-khoản&gt;/&lt;id&gt;/</code>
             </p>
@@ -308,7 +308,7 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
             <button
               onClick={() => void handleSaveSettings()}
               disabled={isSaving}
-              className="rounded-[16px] bg-[var(--accent)] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--accent-deep)] disabled:opacity-50"
+              className="rounded-2xl bg-(--accent) px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-(--accent-deep) disabled:opacity-50"
             >
               {isSaving ? "Đang lưu…" : "Lưu cài đặt"}
             </button>
@@ -333,9 +333,9 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
             ].map(({ label, value }) => (
               <div
                 key={label}
-                className="rounded-[20px] border border-[var(--line)] bg-white/60 p-4 text-center"
+                className="rounded-[20px] border border-(--line) bg-white/60 p-4 text-center"
               >
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent-deep)]">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--accent-deep)">
                   {label}
                 </p>
                 <p className="mt-2 text-3xl font-semibold">{value}</p>
@@ -344,13 +344,13 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
           </div>
 
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent-deep)]">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-(--accent-deep)">
               Chi tiết theo học sinh
             </h3>
             <button
               onClick={() => void fetchStats()}
               disabled={isLoading}
-              className="rounded-[12px] border border-[var(--line)] bg-white/70 px-3 py-1.5 text-xs font-medium transition hover:bg-white disabled:opacity-50"
+              className="rounded-xl border border-(--line) bg-white/70 px-3 py-1.5 text-xs font-medium transition hover:bg-white disabled:opacity-50"
             >
               {isLoading ? "Đang tải…" : "Làm mới"}
             </button>
@@ -361,30 +361,30 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
           )}
 
           {isLoading && !submissions && (
-            <p className="text-sm text-[color:rgba(31,26,23,0.5)]">Đang tải dữ liệu…</p>
+            <p className="text-sm text-[rgba(31,26,23,0.5)]">Đang tải dữ liệu…</p>
           )}
 
           {submissions !== null && userStats.length === 0 && (
-            <p className="rounded-[16px] border border-[var(--line)] bg-white/50 px-5 py-8 text-center text-sm text-[color:rgba(31,26,23,0.5)]">
+            <p className="rounded-2xl border border-(--line) bg-white/50 px-5 py-8 text-center text-sm text-[rgba(31,26,23,0.5)]">
               Chưa có bài nộp nào.
             </p>
           )}
 
           {userStats.length > 0 && (
-            <div className="overflow-x-auto rounded-[20px] border border-[var(--line)] bg-white/60">
+            <div className="overflow-x-auto rounded-[20px] border border-(--line) bg-white/60">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-[var(--line)] text-left">
-                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-deep)]">
+                  <tr className="border-b border-(--line) text-left">
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">
                       Tổ chức
                     </th>
-                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-deep)]">
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">
                       Học sinh
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-deep)]">
+                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">
                       Lần nộp
                     </th>
-                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-deep)]">
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">
                       Nộp lần cuối
                     </th>
                   </tr>
@@ -393,19 +393,19 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
                   {userStats.map((stat) => (
                     <tr
                       key={`${stat.org}-${stat.username}`}
-                      className="border-b border-[var(--line)] last:border-0"
+                      className="border-b border-(--line) last:border-0"
                     >
                       <td className="px-4 py-3 font-medium">{stat.organizationName}</td>
                       <td className="px-4 py-3">
                         <span className="font-medium">{stat.displayName}</span>
-                        <span className="ml-2 text-xs text-[color:rgba(31,26,23,0.5)]">
+                        <span className="ml-2 text-xs text-[rgba(31,26,23,0.5)]">
                           @{stat.username}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right font-semibold text-[var(--accent-deep)]">
+                      <td className="px-4 py-3 text-right font-semibold text-(--accent-deep)">
                         {stat.count}
                       </td>
-                      <td className="px-4 py-3 text-[color:rgba(31,26,23,0.65)]">
+                      <td className="px-4 py-3 text-[rgba(31,26,23,0.65)]">
                         {formatDateTime(stat.lastAt)}
                       </td>
                     </tr>
@@ -421,21 +421,21 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
       {tab === "submissions" && (
         <div className="space-y-5">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent-deep)]">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-(--accent-deep)">
               Tất cả bài nộp ({totalCount})
             </h3>
             <div className="flex gap-2">
               <button
                 onClick={() => void fetchStats()}
                 disabled={isLoading}
-                className="rounded-[12px] border border-[var(--line)] bg-white/70 px-3 py-1.5 text-xs font-medium transition hover:bg-white disabled:opacity-50"
+                className="rounded-xl border border-(--line) bg-white/70 px-3 py-1.5 text-xs font-medium transition hover:bg-white disabled:opacity-50"
               >
                 {isLoading ? "Đang tải…" : "Làm mới"}
               </button>
               {totalCount > 0 && (
                 <button
                   onClick={() => void handleDeleteAll()}
-                  className="rounded-[12px] border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
+                  className="rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
                 >
                   Xóa tất cả
                 </button>
@@ -448,33 +448,33 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
           )}
 
           {isLoading && !submissions && (
-            <p className="text-sm text-[color:rgba(31,26,23,0.5)]">Đang tải dữ liệu…</p>
+            <p className="text-sm text-[rgba(31,26,23,0.5)]">Đang tải dữ liệu…</p>
           )}
 
           {submissions !== null && submissions.length === 0 && (
-            <p className="rounded-[16px] border border-[var(--line)] bg-white/50 px-5 py-8 text-center text-sm text-[color:rgba(31,26,23,0.5)]">
+            <p className="rounded-2xl border border-(--line) bg-white/50 px-5 py-8 text-center text-sm text-[rgba(31,26,23,0.5)]">
               Chưa có bài nộp nào.
             </p>
           )}
 
           {submissions !== null && submissions.length > 0 && (
-            <div className="overflow-x-auto rounded-[20px] border border-[var(--line)] bg-white/60">
+            <div className="overflow-x-auto rounded-[20px] border border-(--line) bg-white/60">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-[var(--line)] text-left">
-                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-deep)]">
+                  <tr className="border-b border-(--line) text-left">
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">
                       Thời gian
                     </th>
-                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-deep)]">
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">
                       Tổ chức
                     </th>
-                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-deep)]">
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">
                       Học sinh
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-deep)]">
+                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">
                       File
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-deep)]">
+                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">
                       Kích thước
                     </th>
                     <th className="px-4 py-3" />
@@ -484,20 +484,20 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
                   {submissions.map((rec) => (
                     <tr
                       key={rec.submissionId}
-                      className="border-b border-[var(--line)] last:border-0"
+                      className="border-b border-(--line) last:border-0"
                     >
-                      <td className="px-4 py-3 text-xs text-[color:rgba(31,26,23,0.65)]">
+                      <td className="px-4 py-3 text-xs text-[rgba(31,26,23,0.65)]">
                         {formatDateTime(rec.savedAt)}
                       </td>
                       <td className="px-4 py-3">{rec.organizationName}</td>
                       <td className="px-4 py-3">
                         <span className="font-medium">{rec.displayName}</span>
-                        <span className="ml-2 text-xs text-[color:rgba(31,26,23,0.5)]">
+                        <span className="ml-2 text-xs text-[rgba(31,26,23,0.5)]">
                           @{rec.username}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">{rec.fileCount}</td>
-                      <td className="px-4 py-3 text-right text-xs text-[color:rgba(31,26,23,0.65)]">
+                      <td className="px-4 py-3 text-right text-xs text-[rgba(31,26,23,0.65)]">
                         {formatBytes(rec.totalBytes)}
                       </td>
                       <td className="px-4 py-3 text-right">

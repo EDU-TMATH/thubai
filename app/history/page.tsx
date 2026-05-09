@@ -55,6 +55,14 @@ export default async function HistoryPage() {
             >
               ← Trang nộp bài
             </a>
+            {rows.length > 0 && (
+              <a
+                href="/api/history/download"
+                className="rounded-2xl bg-(--accent) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
+              >
+                Download tất cả bài nộp
+              </a>
+            )}
             {currentUser.is_superuser && (
               <a
                 href="/admin/history"
