@@ -44,6 +44,7 @@ jobs:
             git checkout "$BRANCH"
             git pull --ff-only origin "$BRANCH"
 
+            pnpm config set ignore-scripts false
             pnpm install --frozen-lockfile
             pnpm run build
 
