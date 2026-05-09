@@ -45,9 +45,7 @@ jobs:
             git pull --ff-only origin "$BRANCH"
 
             pnpm config set ignore-scripts false
-            pnpm install --frozen-lockfile \
-              --allow-build=sharp \
-              --allow-build=unrs-resolver
+            pnpm install --frozen-lockfile
             pnpm run build
 
             if [ -n "$APP_NAME" ] && pm2 describe "$APP_NAME" >/dev/null 2>&1; then
