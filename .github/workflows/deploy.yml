@@ -51,7 +51,7 @@ jobs:
             if [ -n "$APP_NAME" ] && pm2 describe "$APP_NAME" >/dev/null 2>&1; then
               PORT="$APP_PORT" pm2 reload "$APP_NAME" --update-env
             elif [ -n "$APP_NAME" ]; then
-              PORT="$APP_PORT" pm2 start pnpm --name "$APP_NAME" -- start
+              PORT="$APP_PORT" pm2 start "pnpm start" --name "$APP_NAME"
             else
               echo "PM2_APP_NAME is empty"
               exit 1
