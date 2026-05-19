@@ -41,9 +41,23 @@ function getFileExtension(filename: string) {
   return path.extname(filename).toLowerCase();
 }
 
+function splitFilename(filename: string) {
+  const rawExtension = path.extname(filename);
+  if (!rawExtension) {
+    return {
+      baseName: filename,
+      extension: "",
+    };
+  }
+
+  return {
+    baseName: filename.slice(0, -rawExtension.length),
+    extension: rawExtension.toLowerCase(),
+  };
+}
+
 function sanitizeFilename(filename: string) {
-  const extension = getFileExtension(filename);
-  const baseName = path.basename(filename, extension);
+  const { baseName, extension } = splitFilename(path.basename(filename));
   const sanitizedBase = sanitizeSegment(baseName);
   return `${sanitizedBase}${extension}`;
 }

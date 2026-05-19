@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 type AppSettings = {
   submissionStart: string | null;
@@ -136,11 +136,13 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
     }
   }, []);
 
-  useEffect(() => {
-    if (tab !== "settings" && submissions === null) {
+  function handleTabChange(nextTab: Tab) {
+    setTab(nextTab);
+
+    if (nextTab !== "settings" && submissions === null) {
       void fetchStats();
     }
-  }, [tab, submissions, fetchStats]);
+  }
 
   async function handleSaveSettings() {
     setIsSaving(true);
@@ -226,7 +228,7 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
         {TABS.map(({ id, label }) => (
           <button
             key={id}
-            onClick={() => setTab(id)}
+            onClick={() => handleTabChange(id)}
             className={`flex-1 rounded-[14px] py-2 text-sm font-semibold transition ${
               tab === id
                 ? "bg-(--accent) text-white shadow-sm"
