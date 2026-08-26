@@ -252,6 +252,95 @@ export async function getSubmissionHistoryAll(limit = 1000): Promise<SubmissionH
   });
 }
 
+export type SubmissionHistoryPage = {
+  rows: SubmissionHistoryRow[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  uniqueStudents: number;
+  totalFiles: number;
+};
+
+export async function getSubmissionHistoryPage(
+  requestedPage: number,
+  pageSize: number,
+  keyword = "",
+): Promise<SubmissionHistoryPage> {
+  return withFileLock(async () => {
+    const db = await openDatabase();
+    try {
+      const normalizedPageSize = Math.max(1, Math.min(Math.trunc(pageSize), 100));
+      const normalizedKeyword = keyword.trim().toLowerCase();
+      const whereClause = normalizedKeyword
+        ? `WHERE instr(
+            lower(
+              username || ' ' || display_name || ' ' ||
+              organization_short_name || ' ' || organization_name
+            ),
+            ?
+          ) > 0`
+        : "";
+      const filterParams = normalizedKeyword ? [normalizedKeyword] : [];
+
+      const summaryResult = db.exec(
+        `
+          SELECT
+            COUNT(*) AS total_count,
+            COUNT(DISTINCT username) AS unique_students,
+            COALESCE(SUM(file_count), 0) AS total_files
+          FROM submission_history
+          ${whereClause}
+        `,
+        filterParams,
+      );
+      const summaryColumns = summaryResult[0]?.columns ?? [];
+      const summaryValues = summaryResult[0]?.values[0] ?? [];
+      const summary = Object.fromEntries(
+        summaryColumns.map((column, index) => [column, summaryValues[index]]),
+      ) as Record<string, unknown>;
+      const totalCount = Number(summary.total_count ?? 0);
+      const totalPages = Math.max(1, Math.ceil(totalCount / normalizedPageSize));
+      const page = Math.min(Math.max(1, Math.trunc(requestedPage) || 1), totalPages);
+
+      const result = db.exec(
+        `
+          SELECT
+            id,
+            submission_id,
+            username,
+            display_name,
+            organization_id,
+            organization_short_name,
+            organization_name,
+            file_count,
+            total_bytes,
+            destination,
+            saved_at,
+            created_at
+          FROM submission_history
+          ${whereClause}
+          ORDER BY saved_at DESC
+          LIMIT ? OFFSET ?
+        `,
+        [...filterParams, normalizedPageSize, (page - 1) * normalizedPageSize],
+      );
+
+      return {
+        rows: mapRows(result),
+        page,
+        pageSize: normalizedPageSize,
+        totalCount,
+        totalPages,
+        uniqueStudents: Number(summary.unique_students ?? 0),
+        totalFiles: Number(summary.total_files ?? 0),
+      };
+    } finally {
+      db.close();
+    }
+  });
+}
+
 export async function getSubmissionHistoryById(
   submissionId: string,
   username: string,

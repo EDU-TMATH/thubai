@@ -1,12 +1,19 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { getSession } from "@/app/lib/auth";
 import { fetchCurrentUser } from "@/app/lib/judge-api";
-import { getSubmissionHistoryAll } from "@/app/lib/submission-history-db";
+import { getSubmissionHistoryPage } from "@/app/lib/submission-history-db";
 
 type AdminHistoryPageProps = {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string | string[]; page?: string | string[] }>;
 };
+
+const PAGE_SIZE = 25;
+
+function firstParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
+}
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("vi-VN", {
@@ -42,20 +49,20 @@ export default async function AdminHistoryPage({ searchParams }: AdminHistoryPag
   }
 
   const params = await searchParams;
-  const keyword = (params.q ?? "").trim().toLowerCase();
+  const keyword = firstParam(params.q).trim();
+  const requestedPage = Number.parseInt(firstParam(params.page), 10) || 1;
+  const history = await getSubmissionHistoryPage(requestedPage, PAGE_SIZE, keyword);
+  const { rows, page, totalPages, totalCount, uniqueStudents, totalFiles } = history;
 
-  const rows = await getSubmissionHistoryAll(3000);
-  const filteredRows = keyword
-    ? rows.filter((row) =>
-        [row.username, row.displayName, row.organizationShortName, row.organizationName]
-          .join(" ")
-          .toLowerCase()
-          .includes(keyword),
-      )
-    : rows;
-
-  const uniqueStudents = new Set(filteredRows.map((row) => row.username)).size;
-  const totalFiles = filteredRows.reduce((sum, row) => sum + row.fileCount, 0);
+  function pageHref(targetPage: number) {
+    return {
+      pathname: "/admin/history",
+      query: {
+        ...(keyword ? { q: keyword } : {}),
+        page: targetPage,
+      },
+    };
+  }
 
   return (
     <main className="page-grid mx-auto flex w-full max-w-7xl flex-col gap-6">
@@ -100,7 +107,7 @@ export default async function AdminHistoryPage({ searchParams }: AdminHistoryPag
         <form className="mb-5 grid gap-3 rounded-3xl border border-(--line) bg-white/70 p-4 lg:grid-cols-[1fr_auto]">
           <input
             name="q"
-            defaultValue={params.q ?? ""}
+            defaultValue={keyword}
             placeholder="Tìm theo username, tên học sinh hoặc tổ chức"
             className="rounded-2xl border border-(--line) bg-white px-4 py-2 text-sm outline-none focus:border-(--accent)"
           />
@@ -117,7 +124,7 @@ export default async function AdminHistoryPage({ searchParams }: AdminHistoryPag
             <div className="text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">
               Lượt nộp
             </div>
-            <div className="mt-1 text-2xl font-semibold">{filteredRows.length}</div>
+            <div className="mt-1 text-2xl font-semibold">{totalCount}</div>
           </div>
           <div className="rounded-2xl border border-(--line) bg-white/70 p-4">
             <div className="text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">
@@ -133,7 +140,7 @@ export default async function AdminHistoryPage({ searchParams }: AdminHistoryPag
           </div>
         </div>
 
-        {filteredRows.length === 0 ? (
+        {rows.length === 0 ? (
           <div className="rounded-3xl border border-(--line) bg-white/65 px-6 py-10 text-center text-sm text-[rgba(31,26,23,0.68)]">
             Không có dữ liệu khớp điều kiện tra cứu.
           </div>
@@ -151,7 +158,7 @@ export default async function AdminHistoryPage({ searchParams }: AdminHistoryPag
                 </tr>
               </thead>
               <tbody>
-                {filteredRows.map((row) => (
+                {rows.map((row) => (
                   <tr key={row.id} className="border-b border-(--line) last:border-0">
                     <td className="px-4 py-3">{formatDateTime(row.savedAt)}</td>
                     <td className="px-4 py-3">
@@ -170,6 +177,46 @@ export default async function AdminHistoryPage({ searchParams }: AdminHistoryPag
               </tbody>
             </table>
           </div>
+        )}
+
+        {totalCount > 0 && (
+          <nav
+            aria-label="Phân trang lịch sử nộp bài"
+            className="mt-5 flex flex-col items-center justify-between gap-3 sm:flex-row"
+          >
+            <p className="text-sm text-[rgba(31,26,23,0.68)]">
+              Hiển thị {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, totalCount)} trong {totalCount} lượt nộp
+            </p>
+            <div className="flex items-center gap-2">
+              {page > 1 ? (
+                <Link
+                  href={pageHref(page - 1)}
+                  className="rounded-xl border border-(--line) bg-white/70 px-4 py-2 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
+                >
+                  ← Trang trước
+                </Link>
+              ) : (
+                <span className="cursor-not-allowed rounded-xl border border-(--line) bg-white/40 px-4 py-2 text-sm font-semibold text-[rgba(31,26,23,0.35)]">
+                  ← Trang trước
+                </span>
+              )}
+              <span className="px-2 text-sm font-semibold">
+                Trang {page} / {totalPages}
+              </span>
+              {page < totalPages ? (
+                <Link
+                  href={pageHref(page + 1)}
+                  className="rounded-xl border border-(--line) bg-white/70 px-4 py-2 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
+                >
+                  Trang sau →
+                </Link>
+              ) : (
+                <span className="cursor-not-allowed rounded-xl border border-(--line) bg-white/40 px-4 py-2 text-sm font-semibold text-[rgba(31,26,23,0.35)]">
+                  Trang sau →
+                </span>
+              )}
+            </div>
+          </nav>
         )}
       </section>
     </main>
