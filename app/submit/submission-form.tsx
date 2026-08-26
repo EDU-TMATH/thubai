@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
   BuildingsIcon,
@@ -20,6 +21,9 @@ type OrganizationOption = {
 
 const acceptedExtensions = [".cpp", ".py", ".pas"];
 const maxTotalBytes = 1024 * 1024;
+const subscribeToClientEnvironment = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 type SubmissionFormProps = {
   username: string;
@@ -54,6 +58,11 @@ export function SubmissionForm({ username, displayName, organizations }: Submiss
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const isMounted = useSyncExternalStore(
+    subscribeToClientEnvironment,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
 
   const totalBytes = useMemo(
     () => files.reduce((sum, file) => sum + file.size, 0),
@@ -204,42 +213,45 @@ export function SubmissionForm({ username, displayName, organizations }: Submiss
 
   return (
     <div className="space-y-6">
-      {status.text && status.tone !== "idle" ? (
-        <div className="pointer-events-none fixed right-5 top-5 z-50 w-[min(92vw,420px)]">
-          <div
-            className={`pointer-events-auto rounded-[24px] border px-5 py-4 shadow-[0_20px_60px_rgba(16,90,145,0.2)] backdrop-blur-xl ${
-              status.tone === "success"
-                ? "border-[rgba(33,92,71,0.18)] bg-[rgba(238,252,247,0.96)] text-(--success)"
-                : "border-[rgba(163,61,49,0.18)] bg-[rgba(255,244,242,0.97)] text-(--danger)"
-            }`}
-            role="status"
-            aria-live="polite"
-          >
-            <div className="flex items-start gap-4">
-              {status.tone === "success" ? (
-                <CheckCircleIcon className="shrink-0" size={28} weight="fill" aria-hidden="true" />
-              ) : (
-                <WarningCircleIcon className="shrink-0" size={28} weight="fill" aria-hidden="true" />
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em]">
-                  {status.tone === "success" ? "Nộp bài thành công" : "Không thể nộp bài"}
-                </p>
-                <p className="mt-2 text-sm font-medium leading-6 text-[rgba(18,48,71,0.88)]">
-                  {status.text}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setStatus({ tone: "idle", text: "" })}
-                className="rounded-full border border-black/8 px-3 py-1 text-xs font-semibold text-[rgba(18,48,71,0.7)] transition hover:bg-white/70"
+      {isMounted && status.text && status.tone !== "idle"
+        ? createPortal(
+            <div className="pointer-events-none fixed right-5 top-5 z-[100] w-[min(92vw,420px)]">
+              <div
+                className={`pointer-events-auto rounded-[24px] border px-5 py-4 shadow-[0_20px_60px_rgba(16,90,145,0.2)] backdrop-blur-xl ${
+                  status.tone === "success"
+                    ? "border-[rgba(33,92,71,0.18)] bg-[rgba(238,252,247,0.96)] text-(--success)"
+                    : "border-[rgba(163,61,49,0.18)] bg-[rgba(255,244,242,0.97)] text-(--danger)"
+                }`}
+                role="status"
+                aria-live="polite"
               >
-                Đóng
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+                <div className="flex items-start gap-4">
+                  {status.tone === "success" ? (
+                    <CheckCircleIcon className="shrink-0" size={28} weight="fill" aria-hidden="true" />
+                  ) : (
+                    <WarningCircleIcon className="shrink-0" size={28} weight="fill" aria-hidden="true" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em]">
+                      {status.tone === "success" ? "Nộp bài thành công" : "Không thể nộp bài"}
+                    </p>
+                    <p className="mt-2 text-sm font-medium leading-6 text-[rgba(18,48,71,0.88)]">
+                      {status.text}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setStatus({ tone: "idle", text: "" })}
+                    className="rounded-full border border-black/8 px-3 py-1 text-xs font-semibold text-[rgba(18,48,71,0.7)] transition hover:bg-white/70"
+                  >
+                    Đóng
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
 
       <div className="flex flex-col gap-4 rounded-[28px] border border-(--line) bg-white/65 p-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
