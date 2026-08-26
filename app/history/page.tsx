@@ -63,7 +63,7 @@ export default async function HistoryPage() {
                 href="/api/history/download"
                 className="rounded-2xl bg-(--accent) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
               >
-                Download tất cả bài nộp
+                Tải xuống theo tổ chức
               </a>
             )}
             {currentUser.is_superuser && (

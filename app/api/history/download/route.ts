@@ -44,7 +44,9 @@ export async function GET(request: Request) {
   let fileCounter = 0;
 
   for (const row of rows) {
-    const folderName = `${toSafeTimestamp(row.savedAt)}_${sanitizeSegment(row.organizationShortName)}_${sanitizeSegment(row.submissionId)}`;
+    const organizationFolder = sanitizeSegment(row.organizationShortName);
+    const submissionFolder = `${toSafeTimestamp(row.savedAt)}_${sanitizeSegment(row.submissionId)}`;
+    const folderName = `${organizationFolder}/${submissionFolder}`;
     const destination = row.destination;
 
     let entries;
