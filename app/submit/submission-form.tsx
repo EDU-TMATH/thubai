@@ -215,7 +215,15 @@ export function SubmissionForm({ username, displayName, organizations }: Submiss
     <div className="space-y-6">
       {isMounted && status.text && status.tone !== "idle"
         ? createPortal(
-            <div className="pointer-events-none fixed right-5 top-5 z-[100] w-[min(92vw,420px)]">
+            <div
+              className="pointer-events-none w-[min(calc(100vw-2.5rem),420px)]"
+              style={{
+                position: "fixed",
+                right: "max(1.25rem, env(safe-area-inset-right))",
+                bottom: "max(1.25rem, env(safe-area-inset-bottom))",
+                zIndex: 1000,
+              }}
+            >
               <div
                 className={`pointer-events-auto rounded-[24px] border px-5 py-4 shadow-[0_20px_60px_rgba(16,90,145,0.2)] backdrop-blur-xl ${
                   status.tone === "success"
