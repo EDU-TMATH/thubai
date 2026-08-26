@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ClockIcon, GaugeIcon, GearIcon, UploadSimpleIcon } from "@phosphor-icons/react/ssr";
 
 import { getSession } from "@/app/lib/auth";
 import { extractOrganizations, fetchCurrentUser } from "@/app/lib/judge-api";
@@ -58,7 +59,8 @@ export default async function SubmitPage() {
       <section className="glass-panel rounded-4xl px-8 py-10 lg:px-10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl space-y-4">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-(--accent-deep)">
+            <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-(--accent-deep)">
+              <UploadSimpleIcon size={20} weight="duotone" aria-hidden="true" />
               Hệ thống thu bài
             </p>
             <h1 className="text-4xl font-semibold leading-tight lg:text-5xl">
@@ -71,6 +73,7 @@ export default async function SubmitPage() {
 
           <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[320px]">
             <div className="rounded-3xl border border-(--line) bg-white/65 p-4">
+              <GaugeIcon className="mb-2 text-(--accent)" size={25} weight="duotone" aria-hidden="true" />
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--accent-deep)">
                 Giới hạn
               </p>
@@ -78,6 +81,7 @@ export default async function SubmitPage() {
               <p className="mt-2 text-sm text-[rgba(31,26,23,0.68)]">Tổng dung lượng mỗi lần nộp.</p>
             </div>
             <div className="rounded-3xl border border-(--line) bg-white/65 p-4">
+              <ClockIcon className="mb-2 text-(--accent)" size={25} weight="duotone" aria-hidden="true" />
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--accent-deep)">
                 Thời gian
               </p>
@@ -87,8 +91,9 @@ export default async function SubmitPage() {
             {currentUser.is_superuser && (
               <a
                 href="/admin"
-                className="col-span-full rounded-3xl border border-(--accent-soft) bg-(--accent-soft) px-4 py-3 text-center text-sm font-semibold text-(--accent-deep) transition hover:bg-(--accent) hover:text-white"
+                className="col-span-full flex items-center justify-center gap-2 rounded-3xl border border-(--accent-soft) bg-(--accent-soft) px-4 py-3 text-center text-sm font-semibold text-(--accent-deep) transition hover:bg-(--accent) hover:text-white"
               >
+                <GearIcon size={19} weight="duotone" aria-hidden="true" />
                 Vào trang quản trị →
               </a>
             )}

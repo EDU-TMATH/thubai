@@ -2,6 +2,15 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  BuildingsIcon,
+  CheckCircleIcon,
+  FileCodeIcon,
+  SignOutIcon,
+  TrashIcon,
+  UploadSimpleIcon,
+  WarningCircleIcon,
+} from "@phosphor-icons/react";
 
 type OrganizationOption = {
   id: number;
@@ -207,6 +216,11 @@ export function SubmissionForm({ username, displayName, organizations }: Submiss
             aria-live="polite"
           >
             <div className="flex items-start gap-4">
+              {status.tone === "success" ? (
+                <CheckCircleIcon className="shrink-0" size={28} weight="fill" aria-hidden="true" />
+              ) : (
+                <WarningCircleIcon className="shrink-0" size={28} weight="fill" aria-hidden="true" />
+              )}
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em]">
                   {status.tone === "success" ? "Nộp bài thành công" : "Không thể nộp bài"}
@@ -239,8 +253,9 @@ export function SubmissionForm({ username, displayName, organizations }: Submiss
           type="button"
           onClick={handleLogout}
           disabled={isLoggingOut}
-          className="rounded-full border border-(--line) px-4 py-2 text-sm font-semibold text-(--accent-deep) transition hover:bg-white/70 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-full border border-(--line) px-4 py-2 text-sm font-semibold text-(--accent-deep) transition hover:bg-white/70 disabled:cursor-not-allowed disabled:opacity-60"
         >
+          <SignOutIcon size={18} weight="bold" aria-hidden="true" />
           {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
         </button>
       </div>
@@ -248,7 +263,8 @@ export function SubmissionForm({ username, displayName, organizations }: Submiss
       <form className="space-y-5" onSubmit={handleSubmit}>
         <div className="rounded-[28px] border border-(--line) bg-white/70 p-5">
           <label className="space-y-3">
-            <span className="block text-sm font-semibold uppercase tracking-[0.2em] text-(--accent-deep)">
+            <span className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-(--accent-deep)">
+              <BuildingsIcon size={20} weight="duotone" aria-hidden="true" />
               Tổ chức nộp bài
             </span>
             <span className="block text-sm leading-7 text-[rgba(31,26,23,0.72)]">
@@ -274,7 +290,8 @@ export function SubmissionForm({ username, displayName, organizations }: Submiss
         </div>
 
         <label className="block rounded-[28px] border border-dashed border-(--accent) bg-white/70 p-6 transition hover:bg-white/80">
-          <span className="block text-sm font-semibold uppercase tracking-[0.2em] text-(--accent-deep)">
+          <span className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-(--accent-deep)">
+            <UploadSimpleIcon size={20} weight="duotone" aria-hidden="true" />
             Tải tệp bài làm
           </span>
           <span className="mt-3 block text-2xl font-semibold leading-tight">
@@ -292,7 +309,8 @@ export function SubmissionForm({ username, displayName, organizations }: Submiss
             </p>
           </div>
           <div className="mt-6 rounded-[28px] border-2 border-dashed border-(--accent) bg-[rgba(47,157,224,0.08)] p-5 text-center shadow-[inset_0_0_0_1px_rgba(47,157,224,0.08)]">
-            <span className="inline-flex rounded-full bg-(--accent) px-5 py-2 text-sm font-bold text-white shadow-sm">
+            <span className="inline-flex items-center gap-2 rounded-full bg-(--accent) px-5 py-2 text-sm font-bold text-white shadow-sm">
+              <FileCodeIcon size={20} weight="duotone" aria-hidden="true" />
               Bấm vào đây để chọn tệp
             </span>
             <p className="mt-3 text-base font-semibold text-(--accent-deep)">
@@ -330,8 +348,9 @@ export function SubmissionForm({ username, displayName, organizations }: Submiss
                 <button
                   type="button"
                   onClick={clearFiles}
-                  className="rounded-full border border-(--line) px-3 py-1 text-xs font-semibold text-(--accent-deep) transition hover:bg-white/70"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-(--line) px-3 py-1 text-xs font-semibold text-(--accent-deep) transition hover:bg-white/70"
                 >
+                  <TrashIcon size={14} weight="bold" aria-hidden="true" />
                   Xóa tất cả
                 </button>
               </div>
@@ -359,8 +378,9 @@ export function SubmissionForm({ username, displayName, organizations }: Submiss
                       <button
                         type="button"
                         onClick={() => removeFile(file)}
-                        className="rounded-full border border-(--line) px-3 py-1 text-xs font-semibold text-[rgba(31,26,23,0.74)] transition hover:bg-white"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-(--line) px-3 py-1 text-xs font-semibold text-[rgba(31,26,23,0.74)] transition hover:bg-white"
                       >
+                        <TrashIcon size={14} weight="bold" aria-hidden="true" />
                         Xóa
                       </button>
                     </div>
@@ -395,8 +415,9 @@ export function SubmissionForm({ username, displayName, organizations }: Submiss
             <button
               type="submit"
               disabled={isSubmitting || organizations.length === 0}
-              className="mt-6 w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-(--accent-deep) transition hover:bg-(--accent-soft) disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-(--accent-deep) transition hover:bg-(--accent-soft) disabled:cursor-not-allowed disabled:opacity-60"
             >
+              <UploadSimpleIcon size={20} weight="bold" aria-hidden="true" />
               {isSubmitting ? "Đang gửi bài..." : "Nộp bài"}
             </button>
           </aside>

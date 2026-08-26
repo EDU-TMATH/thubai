@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { LockKeyIcon, SignInIcon, UserIcon, WarningCircleIcon } from "@phosphor-icons/react";
 
 type FormState = {
   username: string;
@@ -46,7 +47,8 @@ export function LoginForm() {
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <label className="text-sm font-semibold text-(--accent-deep)" htmlFor="username">
+        <label className="flex items-center gap-2 text-sm font-semibold text-(--accent-deep)" htmlFor="username">
+          <UserIcon size={18} weight="duotone" aria-hidden="true" />
           Tài khoản
         </label>
         <input
@@ -62,7 +64,8 @@ export function LoginForm() {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-semibold text-(--accent-deep)" htmlFor="password">
+        <label className="flex items-center gap-2 text-sm font-semibold text-(--accent-deep)" htmlFor="password">
+          <LockKeyIcon size={18} weight="duotone" aria-hidden="true" />
           Mật khẩu
         </label>
         <input
@@ -79,7 +82,8 @@ export function LoginForm() {
       </div>
 
       {error ? (
-        <p className="rounded-2xl border border-[rgba(163,61,49,0.18)] bg-[rgba(163,61,49,0.08)] px-4 py-3 text-sm text-(--danger)">
+        <p className="flex items-center gap-2 rounded-2xl border border-[rgba(163,61,49,0.18)] bg-[rgba(163,61,49,0.08)] px-4 py-3 text-sm text-(--danger)">
+          <WarningCircleIcon className="shrink-0" size={20} weight="fill" aria-hidden="true" />
           {error}
         </p>
       ) : null}
@@ -87,8 +91,9 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-2xl bg-(--accent) px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-(--accent-deep) disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-(--accent) px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-(--accent-deep) disabled:cursor-not-allowed disabled:opacity-60"
       >
+        <SignInIcon size={20} weight="bold" aria-hidden="true" />
         {isSubmitting ? "Đang đăng nhập..." : "Vào trang thu bài"}
       </button>
     </form>

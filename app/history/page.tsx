@@ -1,4 +1,10 @@
 import { redirect } from "next/navigation";
+import {
+  ArrowLeftIcon,
+  ClockCounterClockwiseIcon,
+  DownloadSimpleIcon,
+  FilesIcon,
+} from "@phosphor-icons/react/ssr";
 
 import { getSession } from "@/app/lib/auth";
 import { fetchCurrentUser } from "@/app/lib/judge-api";
@@ -43,7 +49,8 @@ export default async function HistoryPage() {
       <section className="glass-panel rounded-4xl px-8 py-10 lg:px-10">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-3">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-(--accent-deep)">
+            <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-(--accent-deep)">
+              <ClockCounterClockwiseIcon size={20} weight="duotone" aria-hidden="true" />
               Tra cứu lịch sử nộp bài
             </p>
             <h1 className="text-4xl font-semibold leading-tight lg:text-5xl">Lịch sử của bạn</h1>
@@ -54,15 +61,17 @@ export default async function HistoryPage() {
           <div className="flex gap-3">
             <a
               href="/submit"
-              className="rounded-2xl border border-(--line) bg-white/70 px-4 py-2 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
+              className="inline-flex items-center gap-2 rounded-2xl border border-(--line) bg-white/70 px-4 py-2 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
             >
-              ← Trang nộp bài
+              <ArrowLeftIcon size={18} weight="bold" aria-hidden="true" />
+              Trang nộp bài
             </a>
             {rows.length > 0 && (
               <a
                 href="/api/history/download"
-                className="rounded-2xl bg-(--accent) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
+                className="inline-flex items-center gap-2 rounded-2xl bg-(--accent) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
               >
+                <DownloadSimpleIcon size={18} weight="bold" aria-hidden="true" />
                 Tải xuống theo tổ chức
               </a>
             )}
@@ -81,6 +90,7 @@ export default async function HistoryPage() {
       <section className="glass-panel rounded-4xl p-6 lg:p-8">
         {rows.length === 0 ? (
           <div className="rounded-3xl border border-(--line) bg-white/65 px-6 py-10 text-center text-sm text-[rgba(31,26,23,0.68)]">
+            <FilesIcon className="mx-auto mb-3 text-(--accent)" size={34} weight="duotone" aria-hidden="true" />
             Bạn chưa có lần nộp bài nào.
           </div>
         ) : (

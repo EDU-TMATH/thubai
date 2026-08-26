@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { CheckCircleIcon, SignInIcon, UploadSimpleIcon } from "@phosphor-icons/react/ssr";
 
 import { LoginForm } from "@/app/login/login-form";
 import { getSession } from "@/app/lib/auth";
@@ -20,7 +21,8 @@ export default async function LoginPage() {
         <div className="absolute inset-y-0 right-0 hidden w-1/3 bg-[radial-gradient(circle_at_center,rgba(66,165,230,0.2),transparent_72%)] lg:block" />
         <div className="relative flex h-full flex-col justify-between gap-10">
           <div className="space-y-6">
-            <div className="inline-flex rounded-full border border-(--line) bg-white/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-(--accent-deep)">
+            <div className="inline-flex items-center gap-2 rounded-full border border-(--line) bg-white/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-(--accent-deep)">
+              <UploadSimpleIcon size={17} weight="duotone" aria-hidden="true" />
               Hệ thống thu bài
             </div>
             <div className="max-w-2xl space-y-4">
@@ -35,6 +37,7 @@ export default async function LoginPage() {
 
           <div className="grid gap-4 md:grid-cols-3">
             <article className="rounded-3xl border border-(--line) bg-white/65 p-5">
+              <SignInIcon className="mb-3 text-(--accent)" size={28} weight="duotone" aria-hidden="true" />
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--accent-deep)">
                 Bước 1
               </p>
@@ -44,6 +47,7 @@ export default async function LoginPage() {
               </p>
             </article>
             <article className="rounded-3xl border border-(--line) bg-white/65 p-5">
+              <UploadSimpleIcon className="mb-3 text-(--accent)" size={28} weight="duotone" aria-hidden="true" />
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--accent-deep)">
                 Bước 2
               </p>
@@ -53,6 +57,7 @@ export default async function LoginPage() {
               </p>
             </article>
             <article className="rounded-3xl border border-(--line) bg-white/65 p-5">
+              <CheckCircleIcon className="mb-3 text-(--success)" size={28} weight="duotone" aria-hidden="true" />
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--accent-deep)">
                 Bước 3
               </p>

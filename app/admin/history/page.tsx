@@ -1,5 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ClockCounterClockwiseIcon,
+  DownloadSimpleIcon,
+  FilesIcon,
+  MagnifyingGlassIcon,
+  UsersIcon,
+} from "@phosphor-icons/react/ssr";
 
 import { getSession } from "@/app/lib/auth";
 import { fetchCurrentUser } from "@/app/lib/judge-api";
@@ -69,7 +78,8 @@ export default async function AdminHistoryPage({ searchParams }: AdminHistoryPag
       <section className="glass-panel rounded-4xl px-8 py-10 lg:px-10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-3">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-(--accent-deep)">
+            <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-(--accent-deep)">
+              <ClockCounterClockwiseIcon size={20} weight="duotone" aria-hidden="true" />
               Quản trị tra cứu lịch sử
             </p>
             <h1 className="text-4xl font-semibold leading-tight lg:text-5xl">
@@ -83,14 +93,16 @@ export default async function AdminHistoryPage({ searchParams }: AdminHistoryPag
           <div className="flex gap-3">
             <a
               href="/admin"
-              className="rounded-2xl border border-(--line) bg-white/70 px-4 py-2 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
+              className="inline-flex items-center gap-2 rounded-2xl border border-(--line) bg-white/70 px-4 py-2 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
             >
-              ← Quay lại quản trị
+              <ArrowLeftIcon size={18} weight="bold" aria-hidden="true" />
+              Quay lại quản trị
             </a>
             <a
               href="/api/admin/history/download"
-              className="rounded-2xl bg-(--accent) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
+              className="inline-flex items-center gap-2 rounded-2xl bg-(--accent) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
             >
+              <DownloadSimpleIcon size={18} weight="bold" aria-hidden="true" />
               Tải xuống theo tổ chức
             </a>
             <a
@@ -113,26 +125,30 @@ export default async function AdminHistoryPage({ searchParams }: AdminHistoryPag
           />
           <button
             type="submit"
-            className="rounded-2xl bg-(--accent) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-(--accent) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
           >
+            <MagnifyingGlassIcon size={18} weight="bold" aria-hidden="true" />
             Tra cứu
           </button>
         </form>
 
         <div className="mb-4 grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border border-(--line) bg-white/70 p-4">
+            <ClockCounterClockwiseIcon className="mb-2 text-(--accent)" size={24} weight="duotone" aria-hidden="true" />
             <div className="text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">
               Lượt nộp
             </div>
             <div className="mt-1 text-2xl font-semibold">{totalCount}</div>
           </div>
           <div className="rounded-2xl border border-(--line) bg-white/70 p-4">
+            <UsersIcon className="mb-2 text-(--accent)" size={24} weight="duotone" aria-hidden="true" />
             <div className="text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">
               Học sinh
             </div>
             <div className="mt-1 text-2xl font-semibold">{uniqueStudents}</div>
           </div>
           <div className="rounded-2xl border border-(--line) bg-white/70 p-4">
+            <FilesIcon className="mb-2 text-(--accent)" size={24} weight="duotone" aria-hidden="true" />
             <div className="text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">
               Tổng số file
             </div>
@@ -193,7 +209,10 @@ export default async function AdminHistoryPage({ searchParams }: AdminHistoryPag
                   href={pageHref(page - 1)}
                   className="rounded-xl border border-(--line) bg-white/70 px-4 py-2 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
                 >
-                  ← Trang trước
+                  <span className="inline-flex items-center gap-1.5">
+                    <ArrowLeftIcon size={16} weight="bold" aria-hidden="true" />
+                    Trang trước
+                  </span>
                 </Link>
               ) : (
                 <span className="cursor-not-allowed rounded-xl border border-(--line) bg-white/40 px-4 py-2 text-sm font-semibold text-[rgba(31,26,23,0.35)]">
@@ -208,7 +227,10 @@ export default async function AdminHistoryPage({ searchParams }: AdminHistoryPag
                   href={pageHref(page + 1)}
                   className="rounded-xl border border-(--line) bg-white/70 px-4 py-2 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
                 >
-                  Trang sau →
+                  <span className="inline-flex items-center gap-1.5">
+                    Trang sau
+                    <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
+                  </span>
                 </Link>
               ) : (
                 <span className="cursor-not-allowed rounded-xl border border-(--line) bg-white/40 px-4 py-2 text-sm font-semibold text-[rgba(31,26,23,0.35)]">

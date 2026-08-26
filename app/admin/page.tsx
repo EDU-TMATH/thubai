@@ -1,4 +1,9 @@
 import { redirect } from "next/navigation";
+import {
+  ArrowLeftIcon,
+  ClockCounterClockwiseIcon,
+  GearIcon,
+} from "@phosphor-icons/react/ssr";
 
 import { getSession } from "@/app/lib/auth";
 import { fetchCurrentUser } from "@/app/lib/judge-api";
@@ -22,7 +27,8 @@ export default async function AdminPage() {
       <section className="glass-panel rounded-4xl px-8 py-10 lg:px-10">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-4">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-(--accent-deep)">
+            <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-(--accent-deep)">
+              <GearIcon size={20} weight="duotone" aria-hidden="true" />
               Quản trị hệ thống
             </p>
             <h1 className="text-4xl font-semibold leading-tight lg:text-5xl">
@@ -38,15 +44,17 @@ export default async function AdminPage() {
             </span>
             <a
               href="/admin/history"
-              className="rounded-[14px] bg-(--accent) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
+              className="inline-flex items-center gap-2 rounded-[14px] bg-(--accent) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
             >
+              <ClockCounterClockwiseIcon size={18} weight="bold" aria-hidden="true" />
               Lịch sử toàn hệ thống
             </a>
             <a
               href="/submit"
-              className="rounded-[14px] border border-(--line) bg-white/70 px-4 py-2 text-sm font-semibold text-[rgba(31,26,23,0.8)] transition hover:bg-white"
+              className="inline-flex items-center gap-2 rounded-[14px] border border-(--line) bg-white/70 px-4 py-2 text-sm font-semibold text-[rgba(31,26,23,0.8)] transition hover:bg-white"
             >
-              ← Trang thu bài
+              <ArrowLeftIcon size={18} weight="bold" aria-hidden="true" />
+              Trang thu bài
             </a>
           </div>
         </div>

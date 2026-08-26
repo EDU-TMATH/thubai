@@ -1,6 +1,14 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import {
+  ArrowsClockwiseIcon,
+  ChartBarIcon,
+  ClipboardTextIcon,
+  FloppyDiskIcon,
+  GearIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 
 type AppSettings = {
   submissionStart: string | null;
@@ -88,11 +96,11 @@ function aggregateStats(submissions: SubmissionRecord[]): UserStat[] {
   return Array.from(map.values()).sort((a, b) => b.lastAt.localeCompare(a.lastAt));
 }
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "settings", label: "Cài đặt" },
-  { id: "stats", label: "Thống kê" },
-  { id: "submissions", label: "Bài nộp" },
-];
+const TABS = [
+  { id: "settings", label: "Cài đặt", Icon: GearIcon },
+  { id: "stats", label: "Thống kê", Icon: ChartBarIcon },
+  { id: "submissions", label: "Bài nộp", Icon: ClipboardTextIcon },
+] satisfies { id: Tab; label: string; Icon: typeof GearIcon }[];
 
 export default function AdminPanel({ initialSettings }: { initialSettings: AppSettings }) {
   const [tab, setTab] = useState<Tab>("settings");
@@ -225,16 +233,17 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
     <div className="space-y-6">
       {/* Tab bar */}
       <div className="flex gap-2 rounded-2xl bg-white/50 p-1.5">
-        {TABS.map(({ id, label }) => (
+        {TABS.map(({ id, label, Icon }) => (
           <button
             key={id}
             onClick={() => handleTabChange(id)}
-            className={`flex-1 rounded-[14px] py-2 text-sm font-semibold transition ${
+            className={`flex flex-1 items-center justify-center gap-2 rounded-[14px] py-2 text-sm font-semibold transition ${
               tab === id
                 ? "bg-(--accent) text-white shadow-sm"
                 : "text-[rgba(31,26,23,0.6)] hover:bg-white/80"
             }`}
           >
+            <Icon size={18} weight={tab === id ? "fill" : "duotone"} aria-hidden="true" />
             {label}
           </button>
         ))}
@@ -310,8 +319,9 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
             <button
               onClick={() => void handleSaveSettings()}
               disabled={isSaving}
-              className="rounded-2xl bg-(--accent) px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-(--accent-deep) disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-2xl bg-(--accent) px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-(--accent-deep) disabled:opacity-50"
             >
+              <FloppyDiskIcon size={18} weight="bold" aria-hidden="true" />
               {isSaving ? "Đang lưu…" : "Lưu cài đặt"}
             </button>
             {saveMsg && (
@@ -352,8 +362,9 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
             <button
               onClick={() => void fetchStats()}
               disabled={isLoading}
-              className="rounded-xl border border-(--line) bg-white/70 px-3 py-1.5 text-xs font-medium transition hover:bg-white disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-(--line) bg-white/70 px-3 py-1.5 text-xs font-medium transition hover:bg-white disabled:opacity-50"
             >
+              <ArrowsClockwiseIcon size={15} weight="bold" aria-hidden="true" />
               {isLoading ? "Đang tải…" : "Làm mới"}
             </button>
           </div>
@@ -430,15 +441,17 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
               <button
                 onClick={() => void fetchStats()}
                 disabled={isLoading}
-                className="rounded-xl border border-(--line) bg-white/70 px-3 py-1.5 text-xs font-medium transition hover:bg-white disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-(--line) bg-white/70 px-3 py-1.5 text-xs font-medium transition hover:bg-white disabled:opacity-50"
               >
+                <ArrowsClockwiseIcon size={15} weight="bold" aria-hidden="true" />
                 {isLoading ? "Đang tải…" : "Làm mới"}
               </button>
               {totalCount > 0 && (
                 <button
                   onClick={() => void handleDeleteAll()}
-                  className="rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
                 >
+                  <TrashIcon size={15} weight="bold" aria-hidden="true" />
                   Xóa tất cả
                 </button>
               )}
@@ -505,8 +518,9 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
                       <td className="px-4 py-3 text-right">
                         <button
                           onClick={() => void handleDeleteOne(rec)}
-                          className="rounded-[10px] border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 transition hover:bg-red-100"
+                          className="inline-flex items-center gap-1.5 rounded-[10px] border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 transition hover:bg-red-100"
                         >
+                          <TrashIcon size={14} weight="bold" aria-hidden="true" />
                           Xóa
                         </button>
                       </td>
