@@ -5,9 +5,13 @@ import { fetchCurrentUser } from "@/app/lib/judge-api";
 import {
   deleteAllSubmissionHistory,
   deleteSubmissionHistoryById,
+  getSubmissionHistoryById,
 } from "@/app/lib/submission-history-db";
 import { loadSettings } from "@/app/lib/settings";
-import { deleteAllSubmissions, deleteSubmission } from "@/app/lib/submissions";
+import {
+  deleteAllSubmissions,
+  deleteSubmissionAtDestination,
+} from "@/app/lib/submissions";
 
 export const runtime = "nodejs";
 
@@ -71,8 +75,28 @@ export async function DELETE(request: Request) {
   }
 
   if (body.org && body.username && body.submissionId) {
-    await deleteSubmission(baseDir, body.org, body.username, body.submissionId);
-    await deleteSubmissionHistoryById(body.submissionId, body.username, body.org);
+    const submission = await getSubmissionHistoryById(
+      body.submissionId,
+      body.username,
+      body.org,
+    );
+    if (!submission) {
+      return NextResponse.json({ error: "Không tìm thấy bài nộp." }, { status: 404 });
+    }
+
+    try {
+      await deleteSubmissionAtDestination(submission.destination, submission.submissionId);
+      await deleteSubmissionHistoryById(
+        submission.submissionId,
+        submission.username,
+        submission.organizationShortName,
+      );
+    } catch {
+      return NextResponse.json(
+        { error: "Không thể xóa bài nộp." },
+        { status: 500 },
+      );
+    }
     return NextResponse.json({ deleted: body.submissionId });
   }
 

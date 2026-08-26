@@ -252,6 +252,44 @@ export async function getSubmissionHistoryAll(limit = 1000): Promise<SubmissionH
   });
 }
 
+export async function getSubmissionHistoryById(
+  submissionId: string,
+  username: string,
+  organizationShortName: string,
+): Promise<SubmissionHistoryRow | null> {
+  return withFileLock(async () => {
+    const db = await openDatabase();
+    try {
+      const rows = db.exec(
+        `
+          SELECT
+            id,
+            submission_id,
+            username,
+            display_name,
+            organization_id,
+            organization_short_name,
+            organization_name,
+            file_count,
+            total_bytes,
+            destination,
+            saved_at,
+            created_at
+          FROM submission_history
+          WHERE submission_id = ?
+            AND username = ?
+            AND organization_short_name = ?
+          LIMIT 1
+        `,
+        [submissionId, username, organizationShortName],
+      );
+      return mapRows(rows)[0] ?? null;
+    } finally {
+      db.close();
+    }
+  });
+}
+
 export async function deleteSubmissionHistoryById(
   submissionId: string,
   username: string,

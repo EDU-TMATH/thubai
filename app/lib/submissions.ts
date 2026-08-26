@@ -62,6 +62,19 @@ function sanitizeFilename(filename: string) {
   return `${sanitizedBase}${extension}`;
 }
 
+function getSanitizedFilenames(files: File[]) {
+  return files.map((file) => sanitizeFilename(file.name));
+}
+
+function findDuplicateFilename(filenames: string[]) {
+  const seen = new Set<string>();
+  return filenames.find((filename) => {
+    if (seen.has(filename)) return true;
+    seen.add(filename);
+    return false;
+  });
+}
+
 export function validateSubmissionFiles(files: File[]) {
   if (files.length === 0) {
     return { error: "Vui lòng chọn ít nhất một file bài làm." };
@@ -73,6 +86,13 @@ export function validateSubmissionFiles(files: File[]) {
   if (invalidFile) {
     return {
       error: `File ${invalidFile.name} không hợp lệ. Chỉ nhận ${ACCEPTED_EXTENSIONS.join(", ")}.`,
+    };
+  }
+
+  const duplicateFilename = findDuplicateFilename(getSanitizedFilenames(files));
+  if (duplicateFilename) {
+    return {
+      error: `Nhiều file sẽ được lưu cùng tên ${duplicateFilename}. Vui lòng đổi tên file và thử lại.`,
     };
   }
 
@@ -92,6 +112,11 @@ export async function saveSubmission(
   files: File[],
   baseDir: string,
 ): Promise<SavedSubmission> {
+  const sanitizedFilenames = getSanitizedFilenames(files);
+  if (findDuplicateFilename(sanitizedFilenames)) {
+    throw new Error("Submission contains duplicate normalized filenames.");
+  }
+
   const submissionId = `${Date.now()}-${randomUUID().slice(0, 8)}`;
   const destination = path.join(
     baseDir,
@@ -104,10 +129,10 @@ export async function saveSubmission(
   await mkdir(destination, { recursive: true });
 
   let totalBytes = 0;
-  for (const file of files) {
+  for (const [index, file] of files.entries()) {
     const bytes = Buffer.from(await file.arrayBuffer());
     totalBytes += bytes.byteLength;
-    await writeFile(path.join(destination, sanitizeFilename(file.name)), bytes);
+    await writeFile(path.join(destination, sanitizedFilenames[index]), bytes);
   }
 
   await writeFile(
@@ -121,8 +146,8 @@ export async function saveSubmission(
         },
         organization,
         savedAt,
-        files: files.map((file) => ({
-          name: sanitizeFilename(file.name),
+        files: files.map((file, index) => ({
+          name: sanitizedFilenames[index],
           size: file.size,
           type: file.type,
         })),
@@ -215,6 +240,25 @@ export async function deleteSubmission(
   submissionId: string,
 ): Promise<void> {
   await rm(path.join(baseDir, org, username, submissionId), {
+    recursive: true,
+    force: true,
+  });
+}
+
+export async function deleteSubmissionAtDestination(
+  destination: string,
+  submissionId: string,
+): Promise<void> {
+  const resolvedDestination = path.resolve(destination);
+
+  if (
+    path.basename(resolvedDestination) !== submissionId
+    || path.dirname(resolvedDestination) === resolvedDestination
+  ) {
+    throw new Error("Invalid submission destination.");
+  }
+
+  await rm(resolvedDestination, {
     recursive: true,
     force: true,
   });
