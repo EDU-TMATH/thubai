@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { ClockIcon, GaugeIcon, GearIcon, UploadSimpleIcon } from "@phosphor-icons/react/ssr";
 
+import { PageHeader } from "@/app/components/page-header";
 import { getSession } from "@/app/lib/auth";
 import { extractOrganizations, fetchCurrentUser } from "@/app/lib/judge-api";
 import { getWindowStatus, loadSettings } from "@/app/lib/settings";
@@ -56,56 +57,54 @@ export default async function SubmitPage() {
 
   return (
     <main className="page-grid mx-auto flex w-full max-w-6xl flex-col gap-6">
-      <section className="glass-panel rounded-4xl px-8 py-10 lg:px-10">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl space-y-4">
-            <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-(--accent-deep)">
-              <UploadSimpleIcon size={20} weight="duotone" aria-hidden="true" />
-              Hệ thống thu bài
-            </p>
-            <h1 className="text-4xl font-semibold leading-tight lg:text-5xl">
-              Nộp bài thi trực tuyến
-            </h1>
-            <p className="text-base leading-8 text-[rgba(31,26,23,0.74)]">
-              Đăng nhập bằng tài khoản hệ thống, chọn tổ chức thi và tải lên bài làm. Mỗi lần nộp được lưu riêng theo tổ chức và tài khoản để quản lý dễ dàng.
-            </p>
+      <PageHeader
+        size="wide"
+        eyebrow={
+          <>
+            <UploadSimpleIcon size={20} weight="duotone" aria-hidden="true" />
+            Hệ thống thu bài
+          </>
+        }
+        title="Nộp bài thi trực tuyến"
+        description="Đăng nhập bằng tài khoản hệ thống, chọn tổ chức thi và tải lên bài làm. Mỗi lần nộp được lưu riêng theo tổ chức và tài khoản để quản lý dễ dàng."
+        summary={
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex items-center gap-3 rounded-2xl border border-(--line) bg-white/65 p-3.5">
+              <GaugeIcon className="shrink-0 text-(--accent)" size={26} weight="duotone" aria-hidden="true" />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">Giới hạn</p>
+                <p className="mt-1 text-lg font-semibold">{formatKilobytes(MAX_TOTAL_UPLOAD_SIZE)}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-2xl border border-(--line) bg-white/65 p-3.5">
+              <ClockIcon className="shrink-0 text-(--accent)" size={26} weight="duotone" aria-hidden="true" />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">Thời gian</p>
+                <p className={`mt-1 text-sm font-semibold leading-snug ${windowColor}`}>{windowLabel}</p>
+              </div>
+            </div>
           </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[320px]">
-            <div className="rounded-3xl border border-(--line) bg-white/65 p-4">
-              <GaugeIcon className="mb-2 text-(--accent)" size={25} weight="duotone" aria-hidden="true" />
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--accent-deep)">
-                Giới hạn
-              </p>
-              <p className="mt-2 text-2xl font-semibold">{formatKilobytes(MAX_TOTAL_UPLOAD_SIZE)}</p>
-              <p className="mt-2 text-sm text-[rgba(31,26,23,0.68)]">Tổng dung lượng mỗi lần nộp.</p>
-            </div>
-            <div className="rounded-3xl border border-(--line) bg-white/65 p-4">
-              <ClockIcon className="mb-2 text-(--accent)" size={25} weight="duotone" aria-hidden="true" />
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--accent-deep)">
-                Thời gian
-              </p>
-              <p className={`mt-2 text-sm font-semibold leading-snug ${windowColor}`}>{windowLabel}</p>
-              <p className="mt-2 text-sm text-[rgba(31,26,23,0.68)]">Tổ chức: {organizations.length}</p>
-            </div>
+        }
+        actions={
+          <>
             {currentUser.is_superuser && (
               <a
                 href="/admin"
-                className="col-span-full flex items-center justify-center gap-2 rounded-3xl border border-(--accent-soft) bg-(--accent-soft) px-4 py-3 text-center text-sm font-semibold text-(--accent-deep) transition hover:bg-(--accent) hover:text-white"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-(--line) bg-white/70 px-4 py-2.5 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
               >
                 <GearIcon size={19} weight="duotone" aria-hidden="true" />
-                Vào trang quản trị →
+                Trang quản trị
               </a>
             )}
             <a
               href="/history"
-              className="col-span-full rounded-3xl border border-(--line) bg-white/75 px-4 py-3 text-center text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
+              className="inline-flex items-center justify-center rounded-2xl bg-(--accent) px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
             >
               Xem lịch sử nộp bài
             </a>
-          </div>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       {status === "closed" && (
         <div className="rounded-[20px] border border-red-200 bg-red-50 px-6 py-4 text-sm font-medium text-red-700">

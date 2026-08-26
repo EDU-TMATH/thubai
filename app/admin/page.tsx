@@ -5,6 +5,7 @@ import {
   GearIcon,
 } from "@phosphor-icons/react/ssr";
 
+import { PageHeader } from "@/app/components/page-header";
 import { getSession } from "@/app/lib/auth";
 import { fetchCurrentUser } from "@/app/lib/judge-api";
 import { loadSettings } from "@/app/lib/settings";
@@ -24,41 +25,39 @@ export default async function AdminPage() {
 
   return (
     <main className="page-grid mx-auto flex w-full max-w-6xl flex-col gap-6">
-      <section className="glass-panel rounded-4xl px-8 py-10 lg:px-10">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-4">
-            <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-(--accent-deep)">
-              <GearIcon size={20} weight="duotone" aria-hidden="true" />
-              Quản trị hệ thống
-            </p>
-            <h1 className="text-4xl font-semibold leading-tight lg:text-5xl">
-              Bảng điều khiển
-            </h1>
-            <p className="text-base leading-8 ext-[rgba(31,26,23,0.74)]">
-              Cấu hình thời gian thu bài, theo dõi thống kê và quản lý bài nộp của học sinh.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="rounded-[14px] bg-(--accent-soft) px-3 py-1.5 text-xs font-semibold text-(--accent-deep)">
-              {user.username}
-            </span>
+      <PageHeader
+        eyebrow={
+          <>
+            <GearIcon size={20} weight="duotone" aria-hidden="true" />
+            Quản trị hệ thống
+          </>
+        }
+        title="Bảng điều khiển"
+        description={
+          <>
+            Cấu hình thời gian thu bài, theo dõi thống kê và quản lý bài nộp của học sinh.{" "}
+            <span className="font-semibold">@{user.username}</span>
+          </>
+        }
+        actions={
+          <>
             <a
               href="/admin/history"
-              className="inline-flex items-center gap-2 rounded-[14px] bg-(--accent) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-(--accent) px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
             >
               <ClockCounterClockwiseIcon size={18} weight="bold" aria-hidden="true" />
               Lịch sử toàn hệ thống
             </a>
             <a
               href="/submit"
-              className="inline-flex items-center gap-2 rounded-[14px] border border-(--line) bg-white/70 px-4 py-2 text-sm font-semibold text-[rgba(31,26,23,0.8)] transition hover:bg-white"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-(--line) bg-white/70 px-4 py-2.5 text-sm font-semibold text-[rgba(31,26,23,0.8)] transition hover:bg-white"
             >
               <ArrowLeftIcon size={18} weight="bold" aria-hidden="true" />
               Trang thu bài
             </a>
-          </div>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       <AdminPanel initialSettings={settings} />
     </main>

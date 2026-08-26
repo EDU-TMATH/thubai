@@ -6,6 +6,7 @@ import {
   FilesIcon,
 } from "@phosphor-icons/react/ssr";
 
+import { PageHeader } from "@/app/components/page-header";
 import { getSession } from "@/app/lib/auth";
 import { fetchCurrentUser } from "@/app/lib/judge-api";
 import { getSubmissionHistoryForUser } from "@/app/lib/submission-history-db";
@@ -46,22 +47,25 @@ export default async function HistoryPage() {
 
   return (
     <main className="page-grid mx-auto flex w-full max-w-6xl flex-col gap-6">
-      <section className="glass-panel rounded-4xl px-8 py-10 lg:px-10">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-3">
-            <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-(--accent-deep)">
-              <ClockCounterClockwiseIcon size={20} weight="duotone" aria-hidden="true" />
-              Tra cứu lịch sử nộp bài
-            </p>
-            <h1 className="text-4xl font-semibold leading-tight lg:text-5xl">Lịch sử của bạn</h1>
-            <p className="text-base leading-8 text-[rgba(31,26,23,0.74)]">
-              Tài khoản: <span className="font-semibold">{currentUser.display_name}</span> (@{currentUser.username})
-            </p>
-          </div>
-          <div className="flex gap-3">
+      <PageHeader
+        eyebrow={
+          <>
+            <ClockCounterClockwiseIcon size={20} weight="duotone" aria-hidden="true" />
+            Tra cứu lịch sử nộp bài
+          </>
+        }
+        title="Lịch sử của bạn"
+        description={
+          <>
+            Tài khoản: <span className="font-semibold">{currentUser.display_name}</span> (@
+            {currentUser.username})
+          </>
+        }
+        actions={
+          <>
             <a
               href="/submit"
-              className="inline-flex items-center gap-2 rounded-2xl border border-(--line) bg-white/70 px-4 py-2 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-(--line) bg-white/70 px-4 py-2.5 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
             >
               <ArrowLeftIcon size={18} weight="bold" aria-hidden="true" />
               Trang nộp bài
@@ -69,7 +73,7 @@ export default async function HistoryPage() {
             {rows.length > 0 && (
               <a
                 href="/api/history/download"
-                className="inline-flex items-center gap-2 rounded-2xl bg-(--accent) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-(--accent) px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
               >
                 <DownloadSimpleIcon size={18} weight="bold" aria-hidden="true" />
                 Tải xuống theo tổ chức
@@ -78,14 +82,14 @@ export default async function HistoryPage() {
             {currentUser.is_superuser && (
               <a
                 href="/admin/history"
-                className="rounded-2xl bg-(--accent) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
+                className="inline-flex items-center justify-center rounded-2xl border border-(--line) bg-white/70 px-4 py-2.5 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
               >
                 Xem toàn hệ thống →
               </a>
             )}
-          </div>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       <section className="glass-panel rounded-4xl p-6 lg:p-8">
         {rows.length === 0 ? (

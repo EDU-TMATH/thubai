@@ -10,6 +10,7 @@ import {
   UsersIcon,
 } from "@phosphor-icons/react/ssr";
 
+import { PageHeader } from "@/app/components/page-header";
 import { getSession } from "@/app/lib/auth";
 import { fetchCurrentUser } from "@/app/lib/judge-api";
 import { getSubmissionHistoryPage } from "@/app/lib/submission-history-db";
@@ -75,45 +76,40 @@ export default async function AdminHistoryPage({ searchParams }: AdminHistoryPag
 
   return (
     <main className="page-grid mx-auto flex w-full max-w-7xl flex-col gap-6">
-      <section className="glass-panel rounded-4xl px-8 py-10 lg:px-10">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-3">
-            <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-(--accent-deep)">
-              <ClockCounterClockwiseIcon size={20} weight="duotone" aria-hidden="true" />
-              Quản trị tra cứu lịch sử
-            </p>
-            <h1 className="text-4xl font-semibold leading-tight lg:text-5xl">
-              Toàn bộ lịch sử nộp bài
-            </h1>
-            <p className="text-base leading-8 ext-[rgba(31,26,23,0.74)]">
-              Quản trị viên có thể tra cứu theo học sinh hoặc tổ chức.
-            </p>
-          </div>
-
-          <div className="flex gap-3">
+      <PageHeader
+        eyebrow={
+          <>
+            <ClockCounterClockwiseIcon size={20} weight="duotone" aria-hidden="true" />
+            Quản trị tra cứu lịch sử
+          </>
+        }
+        title="Toàn bộ lịch sử nộp bài"
+        description="Quản trị viên có thể tra cứu theo học sinh hoặc tổ chức."
+        actions={
+          <>
             <a
               href="/admin"
-              className="inline-flex items-center gap-2 rounded-2xl border border-(--line) bg-white/70 px-4 py-2 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-(--line) bg-white/70 px-4 py-2.5 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
             >
               <ArrowLeftIcon size={18} weight="bold" aria-hidden="true" />
               Quay lại quản trị
             </a>
             <a
               href="/api/admin/history/download"
-              className="inline-flex items-center gap-2 rounded-2xl bg-(--accent) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-(--accent) px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
             >
               <DownloadSimpleIcon size={18} weight="bold" aria-hidden="true" />
               Tải xuống theo tổ chức
             </a>
             <a
               href="/history"
-              className="rounded-2xl bg-(--accent) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--accent-deep)"
+              className="inline-flex items-center justify-center rounded-2xl border border-(--line) bg-white/70 px-4 py-2.5 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
             >
               Trang lịch sử cá nhân
             </a>
-          </div>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       <section className="glass-panel rounded-4xl p-6 lg:p-8">
         <form className="mb-5 grid gap-3 rounded-3xl border border-(--line) bg-white/70 p-4 lg:grid-cols-[1fr_auto]">

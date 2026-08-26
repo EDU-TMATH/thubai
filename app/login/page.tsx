@@ -35,7 +35,7 @@ export default async function LoginPage() {
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="hidden gap-4 lg:grid lg:grid-cols-3">
             <article className="rounded-3xl border border-(--line) bg-white/65 p-5">
               <SignInIcon className="mb-3 text-(--accent)" size={28} weight="duotone" aria-hidden="true" />
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--accent-deep)">
