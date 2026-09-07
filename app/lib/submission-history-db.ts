@@ -104,6 +104,12 @@ function ensureSchema(db: SqlJsDatabase) {
   db.run(
     "CREATE INDEX IF NOT EXISTS idx_submission_history_saved_at ON submission_history(saved_at DESC);",
   );
+  db.run(
+    "CREATE INDEX IF NOT EXISTS idx_submission_history_username_org_saved_at ON submission_history(username, organization_short_name, saved_at DESC);",
+  );
+  db.run(
+    "CREATE INDEX IF NOT EXISTS idx_submission_history_org_saved_at ON submission_history(organization_short_name, saved_at DESC);",
+  );
 }
 
 async function openDatabase() {

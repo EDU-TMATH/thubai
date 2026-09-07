@@ -70,6 +70,8 @@ describe("submission helpers", () => {
 
   it("saves, lists, and deletes a submission on disk", async () => {
     tempRoot = await mkdtemp(path.join(os.tmpdir(), "thubai-submissions-"));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-07T15:30:00.000Z"));
     const { saveSubmission, listSubmissions, deleteSubmissionAtDestination } = await importSubmissionsModule();
 
     const files = [
@@ -81,6 +83,7 @@ describe("submission helpers", () => {
 
     expect(result.fileCount).toBe(2);
     expect(result.totalBytes).toBeGreaterThan(0);
+    expect(result.destination).toContain(path.join("oly", "2026", "09"));
 
     const metadataPath = path.join(result.destination, "metadata.json");
     const metadataRaw = await readFile(metadataPath, "utf8");
@@ -104,10 +107,11 @@ describe("submission helpers", () => {
     expect(listed).toHaveLength(1);
     expect(listed[0]).toMatchObject({
       submissionId: result.submissionId,
-      org: organization.short_name.toLowerCase(),
-      username: `${user.id}_${user.username}`.toLowerCase(),
+      org: organization.short_name,
+      username: user.username,
       fileCount: 2,
       totalBytes: result.totalBytes,
+      destination: result.destination,
     });
 
     await deleteSubmissionAtDestination(result.destination, result.submissionId);
