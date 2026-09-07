@@ -1,6 +1,7 @@
 import "server-only";
 
 import { headers } from "next/headers";
+import { logWarn } from "@/app/lib/server-log";
 
 import type { UserSession } from "@/app/lib/auth";
 
@@ -27,6 +28,32 @@ export type LoginTokens = {
     access_expires_in: number;
     refresh_expires_in: number;
 };
+
+const DEFAULT_JUDGE_API_TIMEOUT_MS = 8000;
+const DEFAULT_JUDGE_API_RETRY_COUNT = 2;
+const DEFAULT_JUDGE_API_RETRY_DELAY_MS = 300;
+
+function readPositiveIntEnv(name: string, fallback: number) {
+  const raw = process.env[name]?.trim();
+  if (!raw) return fallback;
+
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return Math.trunc(parsed);
+}
+
+const JUDGE_API_TIMEOUT_MS = readPositiveIntEnv(
+  "JUDGE_API_TIMEOUT_MS",
+  DEFAULT_JUDGE_API_TIMEOUT_MS,
+);
+const JUDGE_API_RETRY_COUNT = readPositiveIntEnv(
+  "JUDGE_API_RETRY_COUNT",
+  DEFAULT_JUDGE_API_RETRY_COUNT,
+);
+const JUDGE_API_RETRY_DELAY_MS = readPositiveIntEnv(
+  "JUDGE_API_RETRY_DELAY_MS",
+  DEFAULT_JUDGE_API_RETRY_DELAY_MS,
+);
 
 function normalizeBaseUrl(value: string) {
     return value.replace(/\/+$/, "");
@@ -67,18 +94,91 @@ async function parseErrorMessage(response: Response) {
     return payload?.detail ?? "Judge API request failed.";
 }
 
+function delay(ms: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+function isRetryableStatus(status: number) {
+  return status >= 500 && status <= 599;
+}
+
+async function judgeFetch(url: string, init: RequestInit, context: string): Promise<Response> {
+  const maxAttempts = JUDGE_API_RETRY_COUNT + 1;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), JUDGE_API_TIMEOUT_MS);
+
+    try {
+      const response = await fetch(url, {
+        ...init,
+        signal: controller.signal,
+      });
+
+      if (
+        isRetryableStatus(response.status)
+        && attempt < maxAttempts
+      ) {
+        logWarn("judge_api.retry_http", {
+          context,
+          attempt,
+          maxAttempts,
+          status: response.status,
+        });
+        await delay(JUDGE_API_RETRY_DELAY_MS * attempt);
+        continue;
+      }
+
+      return response;
+    } catch (error) {
+      if (attempt >= maxAttempts) {
+        throw error;
+      }
+
+      logWarn("judge_api.retry_network", {
+        context,
+        attempt,
+        maxAttempts,
+      });
+      await delay(JUDGE_API_RETRY_DELAY_MS * attempt);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  throw new Error("Judge API request failed after retries.");
+}
+
+function judgeConnectivityError() {
+  return {
+    error: "Không thể kết nối Judge API. Vui lòng thử lại sau.",
+    status: 503,
+  };
+}
+
 export async function loginToJudge(
     request: Request,
     credentials: { username: string; password: string },
 ) {
-    const response = await fetch(`${getJudgeApiBaseUrlFromRequest(request)}/auth/login`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        cache: "no-store",
-        body: JSON.stringify(credentials),
-    });
+    let response: Response;
+    try {
+        response = await judgeFetch(
+            `${getJudgeApiBaseUrlFromRequest(request)}/auth/login`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                cache: "no-store",
+                body: JSON.stringify(credentials),
+            },
+            "auth.login",
+        );
+    } catch {
+        return judgeConnectivityError();
+    }
 
     if (!response.ok) {
         return {
@@ -97,13 +197,22 @@ export async function fetchCurrentUser(session: UserSession, request?: Request) 
     const baseUrl = request
         ? getJudgeApiBaseUrlFromRequest(request)
         : await getJudgeApiBaseUrl();
-    const response = await fetch(`${baseUrl}/me`, {
-        method: "GET",
-        headers: {
-            Authorization: `${session.tokenType} ${session.accessToken}`,
-        },
-        cache: "no-store",
-    });
+    let response: Response;
+    try {
+        response = await judgeFetch(
+            `${baseUrl}/me`,
+            {
+                method: "GET",
+                headers: {
+                    Authorization: `${session.tokenType} ${session.accessToken}`,
+                },
+                cache: "no-store",
+            },
+            "auth.me",
+        );
+    } catch {
+        return judgeConnectivityError();
+    }
 
     if (!response.ok) {
         return {
@@ -119,15 +228,24 @@ export async function fetchCurrentUser(session: UserSession, request?: Request) 
 }
 
 export async function logoutFromJudge(session: UserSession, request: Request) {
-    const response = await fetch(`${getJudgeApiBaseUrlFromRequest(request)}/auth/logout`, {
-        method: "POST",
-        headers: {
-            Authorization: `${session.tokenType} ${session.accessToken}`,
-            "Content-Type": "application/json",
-        },
-        cache: "no-store",
-        body: JSON.stringify({ refresh_token: session.refreshToken }),
-    });
+    let response: Response;
+    try {
+        response = await judgeFetch(
+            `${getJudgeApiBaseUrlFromRequest(request)}/auth/logout`,
+            {
+                method: "POST",
+                headers: {
+                    Authorization: `${session.tokenType} ${session.accessToken}`,
+                    "Content-Type": "application/json",
+                },
+                cache: "no-store",
+                body: JSON.stringify({ refresh_token: session.refreshToken }),
+            },
+            "auth.logout",
+        );
+    } catch {
+        return judgeConnectivityError();
+    }
 
     if (!response.ok) {
         return {
