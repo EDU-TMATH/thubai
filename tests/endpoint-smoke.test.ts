@@ -38,6 +38,11 @@ vi.mock("@/app/lib/judge-api", () => ({
 vi.mock("@/app/lib/settings", () => ({
   loadSettings: mocks.loadSettings,
   isSubmissionOpen: mocks.isSubmissionOpen,
+  getEffectiveSubmissionConfig: vi.fn((settings: { storagePrefix: string }) => ({
+    submissionStart: null,
+    submissionEnd: null,
+    storagePrefix: settings.storagePrefix,
+  })),
   getWindowStatus: vi.fn(),
   saveSettings: vi.fn(),
 }));

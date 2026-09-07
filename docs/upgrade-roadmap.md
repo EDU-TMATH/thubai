@@ -133,11 +133,11 @@ Checklist:
 Mục tiêu: nâng tầm hệ thống từ tool nội bộ thành nền tảng ổn định.
 
 Checklist:
-- [ ] Phân trang lịch sử nộp bài
-- [ ] Tìm kiếm theo tên người dùng / tổ chức / mã nộp
-- [ ] Export dữ liệu rõ ràng hơn
-- [ ] Dashboard phân tích số lượng bài nộp theo thời gian
-- [ ] Quản lý cấu hình linh hoạt hơn theo tổ chức
+- [x] Phân trang lịch sử nộp bài
+- [x] Tìm kiếm theo tên người dùng / tổ chức / mã nộp
+- [x] Export dữ liệu rõ ràng hơn
+- [x] Dashboard phân tích số lượng bài nộp theo thời gian
+- [x] Quản lý cấu hình linh hoạt hơn theo tổ chức
 
 ## 5. Đề xuất ưu tiên triển khai
 

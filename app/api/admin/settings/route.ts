@@ -33,6 +33,7 @@ export async function POST(request: Request) {
       submissionStart: "submissionStart" in body ? (body.submissionStart ?? null) : current.submissionStart,
       submissionEnd: "submissionEnd" in body ? (body.submissionEnd ?? null) : current.submissionEnd,
       storagePrefix: body.storagePrefix?.trim() || current.storagePrefix,
+      organizationRules: body.organizationRules ?? current.organizationRules,
     };
 
     await saveSettings(updated);

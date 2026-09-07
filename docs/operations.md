@@ -82,3 +82,16 @@ pnpm start
    - Judge API đang hoạt động
    - Storage có thể đọc/ghi
    - File settings và history DB hiển thị đúng đường dẫn
+
+## 7. Xuất dữ liệu và theo dõi lịch sử
+
+- Trang `/history` và `/admin/history` đều hỗ trợ phân trang, tìm kiếm và export CSV.
+- Nếu cần tra cứu nhanh, ưu tiên lọc theo tên người dùng, tổ chức hoặc mã nộp thay vì tải toàn bộ dữ liệu.
+
+## 8. Cấu hình theo tổ chức
+
+- Trong `/admin`, phần cấu hình theo tổ chức cho phép đặt:
+  - `submissionStart`
+  - `submissionEnd`
+  - `storagePrefix`
+- Nếu một tổ chức chưa có cấu hình riêng, hệ thống sẽ dùng cấu hình chung.

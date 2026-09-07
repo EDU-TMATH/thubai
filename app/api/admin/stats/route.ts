@@ -42,6 +42,55 @@ async function getStorageStatus(storagePath: string) {
   }
 }
 
+function getDateKey(iso: string) {
+  return iso.slice(0, 10);
+}
+
+function buildDailyTrend(rows: Array<{ savedAt: string }>, days = 14) {
+  const counts = new Map<string, number>();
+  const today = new Date();
+  for (let offset = days - 1; offset >= 0; offset -= 1) {
+    const day = new Date(today);
+    day.setUTCDate(today.getUTCDate() - offset);
+    const key = day.toISOString().slice(0, 10);
+    counts.set(key, 0);
+  }
+
+  for (const row of rows) {
+    const key = getDateKey(row.savedAt);
+    if (counts.has(key)) {
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+  }
+
+  return Array.from(counts.entries()).map(([date, count]) => ({ date, count }));
+}
+
+function buildOrganizationBreakdown(
+  rows: Array<{ organizationShortName: string; organizationName: string; fileCount: number; totalBytes: number }>,
+) {
+  const map = new Map<string, { org: string; organizationName: string; count: number; files: number; bytes: number }>();
+  for (const row of rows) {
+    const key = row.organizationShortName;
+    const existing = map.get(key);
+    if (existing) {
+      existing.count += 1;
+      existing.files += row.fileCount;
+      existing.bytes += row.totalBytes;
+    } else {
+      map.set(key, {
+        org: row.organizationShortName,
+        organizationName: row.organizationName,
+        count: 1,
+        files: row.fileCount,
+        bytes: row.totalBytes,
+      });
+    }
+  }
+
+  return Array.from(map.values()).sort((a, b) => b.count - a.count);
+}
+
 export async function GET(request: Request) {
   return withRouteErrorHandling("admin.stats", async () => {
     const auth = await requireSuperuser(request);
@@ -68,8 +117,15 @@ export async function GET(request: Request) {
       getStorageStatus(settings.storagePrefix),
     ]);
 
+    const dailyTrend = buildDailyTrend(historyRows);
+    const organizationBreakdown = buildOrganizationBreakdown(historyRows);
+
     return NextResponse.json({
       submissions,
+      analytics: {
+        dailyTrend,
+        organizationBreakdown,
+      },
       system: {
         judgeApi: {
           status: "ok",
