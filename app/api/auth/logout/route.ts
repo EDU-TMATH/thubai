@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getSession, SESSION_COOKIE_NAME } from "@/app/lib/auth";
+import { getSession, getSessionCookieOptions, SESSION_COOKIE_NAME } from "@/app/lib/auth";
 import { logoutFromJudge } from "@/app/lib/judge-api";
 
 export async function POST(request: Request) {
@@ -14,11 +14,7 @@ export async function POST(request: Request) {
   response.cookies.set({
     name: SESSION_COOKIE_NAME,
     value: "",
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 0,
+    ...getSessionCookieOptions(0),
   });
 
   return response;

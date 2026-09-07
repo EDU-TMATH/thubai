@@ -64,8 +64,6 @@ export async function POST(request: Request) {
         );
     }
 
-    console.log(`User ${currentUser.username} submitted ${files.length} file(s) to organization ${selectedOrganization.short_name}.`);
-
     try {
         await insertSubmissionHistory({
             submissionId: result.submissionId,
@@ -79,8 +77,8 @@ export async function POST(request: Request) {
             destination: result.destination,
             savedAt: result.savedAt,
         });
-    } catch (error) {
-        console.error("Failed to write submission history:", error);
+    } catch {
+        console.error("Failed to write submission history.");
     }
 
     return NextResponse.json({

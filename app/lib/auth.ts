@@ -3,6 +3,7 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { cookies } from "next/headers";
+import { getSessionSecret, isProductionEnv } from "@/app/lib/env";
 
 export type UserSession = {
   username: string;
@@ -18,8 +19,15 @@ function normalizeValue(value: string) {
   return value.trim().replace(/\s+/g, " ");
 }
 
-function getSessionSecret() {
-  return process.env.SESSION_SECRET ?? "thubai-local-secret";
+export function getSessionCookieOptions(maxAge: number) {
+  return {
+    httpOnly: true,
+    sameSite: isProductionEnv() ? "strict" : "lax",
+    secure: isProductionEnv(),
+    path: "/",
+    priority: "high",
+    maxAge,
+  } as const;
 }
 
 function sign(payload: string) {
@@ -71,13 +79,8 @@ export async function getSession(): Promise<UserSession | null> {
   if (!payload || !signature) {
     return null;
   }
-  
+
   if (!safeCompare(sign(payload), signature)) {
-    // CRITICAL: Signature mismatch - cookie may be corrupted or from different secret
-    console.warn(
-      "[AUTH] Session signature verification failed. Cookie may be stale or corrupted.",
-      { cookieLength: token.length, hasPayload: !!payload, hasSignature: !!signature },
-    );
     return null;
   }
 
@@ -93,13 +96,6 @@ export async function getSession(): Promise<UserSession | null> {
       || !parsed.tokenType
       || !parsed.loginAt
     ) {
-      console.warn("[AUTH] Session validation failed: missing required fields", {
-        hasUsername: !!parsed.username,
-        hasAccessToken: !!parsed.accessToken,
-        hasRefreshToken: !!parsed.refreshToken,
-        hasTokenType: !!parsed.tokenType,
-        hasLoginAt: !!parsed.loginAt,
-      });
       return null;
     }
 
@@ -110,11 +106,9 @@ export async function getSession(): Promise<UserSession | null> {
       tokenType: parsed.tokenType,
       loginAt: parsed.loginAt,
     };
-    
-    console.log("[AUTH] Session loaded successfully", { username: session.username, loginAt: session.loginAt });
+
     return session;
-  } catch (error) {
-    console.error("[AUTH] Session parse error:", error instanceof Error ? error.message : error);
+  } catch {
     return null;
   }
 }
