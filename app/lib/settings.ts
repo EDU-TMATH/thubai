@@ -3,9 +3,9 @@ import "server-only";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
-  LEGACY_SETTINGS_FILE,
-  SETTINGS_FILE,
-  SUBMISSION_STORAGE_DIR,
+  getLegacySettingsFile,
+  getSettingsFile,
+  getSubmissionStorageDir,
 } from "@/app/lib/env";
 
 export type AppSettings = {
@@ -14,16 +14,20 @@ export type AppSettings = {
   storagePrefix: string;
 };
 
-const DEFAULT: AppSettings = {
-  submissionStart: null,
-  submissionEnd: null,
-  storagePrefix: SUBMISSION_STORAGE_DIR,
-};
+function getDefaultSettings(): AppSettings {
+  return {
+    submissionStart: null,
+    submissionEnd: null,
+    storagePrefix: getSubmissionStorageDir(),
+  };
+}
 
 export async function loadSettings(): Promise<AppSettings> {
-  const candidateFiles = [SETTINGS_FILE];
-  if (LEGACY_SETTINGS_FILE !== SETTINGS_FILE) {
-    candidateFiles.push(LEGACY_SETTINGS_FILE);
+  const settingsFile = getSettingsFile();
+  const legacySettingsFile = getLegacySettingsFile();
+  const candidateFiles = [settingsFile];
+  if (legacySettingsFile !== settingsFile) {
+    candidateFiles.push(legacySettingsFile);
   }
 
   for (const candidateFile of candidateFiles) {
@@ -33,19 +37,20 @@ export async function loadSettings(): Promise<AppSettings> {
       return {
         submissionStart: parsed.submissionStart ?? null,
         submissionEnd: parsed.submissionEnd ?? null,
-        storagePrefix: parsed.storagePrefix?.trim() || SUBMISSION_STORAGE_DIR,
+        storagePrefix: parsed.storagePrefix?.trim() || getSubmissionStorageDir(),
       };
     } catch {
       continue;
     }
   }
 
-  return { ...DEFAULT };
+  return getDefaultSettings();
 }
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
-  await mkdir(path.dirname(SETTINGS_FILE), { recursive: true });
-  await writeFile(SETTINGS_FILE, JSON.stringify(settings, null, 2), "utf8");
+  const settingsFile = getSettingsFile();
+  await mkdir(path.dirname(settingsFile), { recursive: true });
+  await writeFile(settingsFile, JSON.stringify(settings, null, 2), "utf8");
 }
 
 export type WindowStatus = "open" | "pending" | "closed" | "unconfigured";

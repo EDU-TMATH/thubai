@@ -34,6 +34,16 @@ pnpm build
 pnpm start
 ```
 
+## Kiểm thử
+
+```bash
+pnpm lint
+pnpm test
+pnpm test:coverage
+```
+
+CI chạy cùng bộ lệnh trên trước khi build, nên nếu một trong các bước này fail thì branch chưa sẵn sàng để merge.
+
 ## Tài liệu vận hành
 
 - Lộ trình nâng cấp: `docs/upgrade-roadmap.md`

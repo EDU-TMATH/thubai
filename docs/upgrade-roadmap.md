@@ -111,11 +111,11 @@ Checklist:
 Mục tiêu: giảm regressions và tăng niềm tin khi phát triển.
 
 Checklist:
-- [ ] Viết unit test cho validation và helper logic
-- [ ] Viết integration test cho flow chính
-- [ ] Tạo CI pipeline chạy test + build + lint
-- [ ] Setup coverage report
-- [ ] Kiểm tra performance cơ bản ở các endpoint quan trọng
+- [x] Viết unit test cho validation và helper logic
+- [x] Viết integration test cho flow chính
+- [x] Tạo CI pipeline chạy test + build + lint
+- [x] Setup coverage report
+- [x] Kiểm tra performance cơ bản ở các endpoint quan trọng
 
 ### Giai đoạn 4: Tối ưu scalability và quản lý dữ liệu (1–2 tháng)
 
