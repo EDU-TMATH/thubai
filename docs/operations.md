@@ -23,6 +23,9 @@ Biến bắt buộc:
 
 Biến khuyến nghị:
 - `JUDGE_API_BASE_URL`
+- `JUDGE_API_TIMEOUT_MS`
+- `JUDGE_API_RETRY_COUNT`
+- `JUDGE_API_RETRY_DELAY_MS`
 - `DATA_DIR` hoặc các biến override (`DB_PATH`, `SETTINGS_FILE`, `SUBMISSION_STORAGE_DIR`)
 
 Khuyến nghị vận hành:
@@ -53,3 +56,7 @@ pnpm start
 2. Nộp một bài thử nghiệm.
 3. Kiểm tra `/history` có bản ghi mới.
 4. Vào `/admin` xác nhận đọc/ghi cấu hình được.
+5. Ở tab **Thống kê**, kiểm tra trạng thái:
+   - Judge API đang hoạt động
+   - Storage có thể đọc/ghi
+   - File settings và history DB hiển thị đúng đường dẫn

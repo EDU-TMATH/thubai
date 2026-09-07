@@ -1,54 +1,85 @@
 import { NextResponse } from "next/server";
+import { access, mkdir } from "node:fs/promises";
+import { constants } from "node:fs";
 
-import { getSession } from "@/app/lib/auth";
-import { fetchCurrentUser } from "@/app/lib/judge-api";
+import { requireSuperuser } from "@/app/lib/admin-auth";
+import { withRouteErrorHandling } from "@/app/lib/api-utils";
+import { HISTORY_DB_FILE, SETTINGS_FILE } from "@/app/lib/env";
 import { getSubmissionHistoryAll } from "@/app/lib/submission-history-db";
+import { loadSettings } from "@/app/lib/settings";
 
 export const runtime = "nodejs";
 
-type AdminAuthResult =
-  | { ok: true }
-  | { ok: false; status: number; error: string };
-
-async function requireSuperuser(request: Request) {
-  const session = await getSession();
-  if (!session) {
-    return { ok: false, status: 401, error: "Phiên đăng nhập đã hết hạn." } satisfies AdminAuthResult;
+async function pathExists(filePath: string) {
+  try {
+    await access(filePath, constants.F_OK);
+    return true;
+  } catch {
+    return false;
   }
+}
 
-  const meResult = await fetchCurrentUser(session, request);
-  if ("error" in meResult) {
+async function getStorageStatus(storagePath: string) {
+  try {
+    await mkdir(storagePath, { recursive: true });
+    await access(storagePath, constants.R_OK | constants.W_OK);
     return {
-      ok: false,
-      status: meResult.status,
-      error: meResult.error ?? "Không thể xác thực người dùng.",
-    } satisfies AdminAuthResult;
+      path: storagePath,
+      writable: true,
+      status: "ok" as const,
+      message: "Thư mục lưu bài có thể đọc/ghi.",
+    };
+  } catch {
+    return {
+      path: storagePath,
+      writable: false,
+      status: "error" as const,
+      message: "Không thể ghi vào thư mục lưu bài.",
+    };
   }
-
-  if (!meResult.data.is_superuser) {
-    return { ok: false, status: 403, error: "Không có quyền truy cập." } satisfies AdminAuthResult;
-  }
-
-  return { ok: true } satisfies AdminAuthResult;
 }
 
 export async function GET(request: Request) {
-  const auth = await requireSuperuser(request);
-  if (!auth.ok) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
+  return withRouteErrorHandling("admin.stats", async () => {
+    const auth = await requireSuperuser(request);
+    if (!auth.ok) {
+      return auth.response;
+    }
 
-  const historyRows = await getSubmissionHistoryAll(3000);
-  const submissions = historyRows.map((row) => ({
-    submissionId: row.submissionId,
-    org: row.organizationShortName,
-    username: row.username,
-    displayName: row.displayName,
-    organizationName: row.organizationName,
-    savedAt: row.savedAt,
-    fileCount: row.fileCount,
-    totalBytes: row.totalBytes,
-  }));
+    const settings = await loadSettings();
+    const historyRows = await getSubmissionHistoryAll(3000);
+    const submissions = historyRows.map((row) => ({
+      submissionId: row.submissionId,
+      org: row.organizationShortName,
+      username: row.username,
+      displayName: row.displayName,
+      organizationName: row.organizationName,
+      savedAt: row.savedAt,
+      fileCount: row.fileCount,
+      totalBytes: row.totalBytes,
+    }));
 
-  return NextResponse.json({ submissions });
+    const [settingsExists, historyDbExists, storage] = await Promise.all([
+      pathExists(SETTINGS_FILE),
+      pathExists(HISTORY_DB_FILE),
+      getStorageStatus(settings.storagePrefix),
+    ]);
+
+    return NextResponse.json({
+      submissions,
+      system: {
+        judgeApi: {
+          status: "ok",
+          message: "Kết nối Judge API đang hoạt động.",
+        },
+        storage,
+        files: {
+          settingsFile: SETTINGS_FILE,
+          settingsExists,
+          historyDbFile: HISTORY_DB_FILE,
+          historyDbExists,
+        },
+      },
+    });
+  });
 }

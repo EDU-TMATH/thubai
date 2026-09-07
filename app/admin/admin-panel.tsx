@@ -36,6 +36,25 @@ type UserStat = {
   lastAt: string;
 };
 
+type SystemStatus = {
+  judgeApi: {
+    status: "ok" | "error";
+    message: string;
+  };
+  storage: {
+    path: string;
+    writable: boolean;
+    status: "ok" | "error";
+    message: string;
+  };
+  files: {
+    settingsFile: string;
+    settingsExists: boolean;
+    historyDbFile: string;
+    historyDbExists: boolean;
+  };
+};
+
 type Tab = "settings" | "stats" | "submissions";
 
 function toDatetimeLocal(iso: string | null): string {
@@ -114,6 +133,7 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
 
   // Stats state
   const [submissions, setSubmissions] = useState<SubmissionRecord[] | null>(null);
+  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -134,11 +154,16 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
         }
         throw new Error(data?.error ?? `Lỗi ${res.status}`);
       }
-      const data = (await res.json()) as { submissions: SubmissionRecord[] };
+      const data = (await res.json()) as {
+        submissions: SubmissionRecord[];
+        system: SystemStatus;
+      };
       setSubmissions(data.submissions);
+      setSystemStatus(data.system);
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : "Lỗi tải dữ liệu.");
       setSubmissions([]);
+      setSystemStatus(null);
     } finally {
       setIsLoading(false);
     }
@@ -159,7 +184,7 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
       const body: AppSettings = {
         submissionStart: fromDatetimeLocal(startInput),
         submissionEnd: fromDatetimeLocal(endInput),
-        storagePrefix: prefixInput.trim() || "/tmp",
+        storagePrefix: prefixInput.trim() || initialSettings.storagePrefix,
       };
       const res = await fetch("/api/admin/settings", {
         method: "POST",
@@ -304,12 +329,12 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
                 type="text"
                 value={prefixInput}
                 onChange={(e) => setPrefixInput(e.target.value)}
-                placeholder="/tmp"
+                placeholder={initialSettings.storagePrefix}
                 className="w-full rounded-[14px] border border-(--line) bg-white/80 px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-(--accent)/40"
               />
             </label>
             <p className="mt-3 text-xs text-[rgba(31,26,23,0.5)]">
-              Bài nộp sẽ được lưu vào <code className="font-mono">{prefixInput || "/tmp"}
+              Bài nộp sẽ được lưu vào <code className="font-mono">{prefixInput || initialSettings.storagePrefix}
               /&lt;tổ-chức&gt;/&lt;tài-khoản&gt;/&lt;id&gt;/</code>
             </p>
           </div>
@@ -354,6 +379,60 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
               </div>
             ))}
           </div>
+
+          {systemStatus && (
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="rounded-[20px] border border-(--line) bg-white/60 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--accent-deep)">
+                  Trạng thái Judge API
+                </p>
+                <p className={`mt-2 text-sm font-semibold ${systemStatus.judgeApi.status === "ok" ? "text-emerald-700" : "text-red-700"}`}>
+                  {systemStatus.judgeApi.message}
+                </p>
+              </div>
+
+              <div className="rounded-[20px] border border-(--line) bg-white/60 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--accent-deep)">
+                  Trạng thái lưu trữ
+                </p>
+                <p className={`mt-2 text-sm font-semibold ${systemStatus.storage.status === "ok" ? "text-emerald-700" : "text-red-700"}`}>
+                  {systemStatus.storage.message}
+                </p>
+                <p className="mt-1 break-all font-mono text-xs text-[rgba(31,26,23,0.62)]">
+                  {systemStatus.storage.path}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {systemStatus && (
+            <div className="rounded-[20px] border border-(--line) bg-white/60 p-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-(--accent-deep)">
+                Tệp hệ thống
+              </p>
+              <div className="space-y-2 text-sm">
+                <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                  <span className="font-medium">Settings JSON</span>
+                  <span className={systemStatus.files.settingsExists ? "text-emerald-700" : "text-amber-700"}>
+                    {systemStatus.files.settingsExists ? "Đã tồn tại" : "Chưa tạo"}
+                  </span>
+                </div>
+                <p className="break-all font-mono text-xs text-[rgba(31,26,23,0.62)]">
+                  {systemStatus.files.settingsFile}
+                </p>
+
+                <div className="mt-3 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                  <span className="font-medium">History DB</span>
+                  <span className={systemStatus.files.historyDbExists ? "text-emerald-700" : "text-amber-700"}>
+                    {systemStatus.files.historyDbExists ? "Đã tồn tại" : "Chưa tạo"}
+                  </span>
+                </div>
+                <p className="break-all font-mono text-xs text-[rgba(31,26,23,0.62)]">
+                  {systemStatus.files.historyDbFile}
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-(--accent-deep)">

@@ -4,8 +4,8 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import JSZip from "jszip";
 
-import { getSession } from "@/app/lib/auth";
-import { fetchCurrentUser } from "@/app/lib/judge-api";
+import { requireSuperuser } from "@/app/lib/admin-auth";
+import { withRouteErrorHandling } from "@/app/lib/api-utils";
 import { getSubmissionHistoryAll } from "@/app/lib/submission-history-db";
 
 export const runtime = "nodejs";
@@ -24,76 +24,68 @@ function toSafeTimestamp(iso: string) {
 }
 
 export async function GET(request: Request) {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.json({ error: "Phiên đăng nhập đã hết hạn." }, { status: 401 });
-  }
-
-  const meResponse = await fetchCurrentUser(session, request);
-  if ("error" in meResponse) {
-    return NextResponse.json({ error: meResponse.error }, { status: meResponse.status });
-  }
-
-  const user = meResponse.data;
-  if (!user.is_superuser) {
-    return NextResponse.json({ error: "Không có quyền truy cập." }, { status: 403 });
-  }
-
-  const rows = await getSubmissionHistoryAll(10000);
-  if (rows.length === 0) {
-    return NextResponse.json({ error: "Chưa có bài nộp để tải xuống." }, { status: 404 });
-  }
-
-  const zip = new JSZip();
-  let fileCounter = 0;
-
-  for (const row of rows) {
-    const organizationFolder = sanitizeSegment(row.organizationShortName);
-    const userFolder = sanitizeSegment(row.username);
-    const submissionFolder = `${toSafeTimestamp(row.savedAt)}_${sanitizeSegment(row.submissionId)}`;
-    const folderName = `${organizationFolder}/${userFolder}/${submissionFolder}`;
-    const destination = row.destination;
-
-    let entries;
-    try {
-      entries = await readdir(destination, { withFileTypes: true });
-    } catch {
-      continue;
+  return withRouteErrorHandling("admin.history.download", async () => {
+    const auth = await requireSuperuser(request);
+    if (!auth.ok) {
+      return auth.response;
     }
 
-    for (const entry of entries) {
-      if (!entry.isFile()) continue;
-      const fullPath = path.join(destination, entry.name);
+    const rows = await getSubmissionHistoryAll(10000);
+    if (rows.length === 0) {
+      return NextResponse.json({ error: "Chưa có bài nộp để tải xuống." }, { status: 404 });
+    }
+
+    const zip = new JSZip();
+    let fileCounter = 0;
+
+    for (const row of rows) {
+      const organizationFolder = sanitizeSegment(row.organizationShortName);
+      const userFolder = sanitizeSegment(row.username);
+      const submissionFolder = `${toSafeTimestamp(row.savedAt)}_${sanitizeSegment(row.submissionId)}`;
+      const folderName = `${organizationFolder}/${userFolder}/${submissionFolder}`;
+      const destination = row.destination;
+
+      let entries;
       try {
-        const data = await readFile(fullPath);
-        zip.file(`${folderName}/${entry.name}`, data);
-        fileCounter += 1;
+        entries = await readdir(destination, { withFileTypes: true });
       } catch {
-        // Skip unreadable files and continue bundling others.
+        continue;
+      }
+
+      for (const entry of entries) {
+        if (!entry.isFile()) continue;
+        const fullPath = path.join(destination, entry.name);
+        try {
+          const data = await readFile(fullPath);
+          zip.file(`${folderName}/${entry.name}`, data);
+          fileCounter += 1;
+        } catch {
+          // Skip unreadable files and continue bundling others.
+        }
       }
     }
-  }
 
-  if (fileCounter === 0) {
-    return NextResponse.json(
-      { error: "Không tìm thấy file bài nộp hợp lệ để tải xuống." },
-      { status: 404 },
-    );
-  }
+    if (fileCounter === 0) {
+      return NextResponse.json(
+        { error: "Không tìm thấy file bài nộp hợp lệ để tải xuống." },
+        { status: 404 },
+      );
+    }
 
-  const archive = await zip.generateAsync({
-    type: "nodebuffer",
-    compression: "DEFLATE",
-    compressionOptions: { level: 6 },
-  });
+    const archive = await zip.generateAsync({
+      type: "nodebuffer",
+      compression: "DEFLATE",
+      compressionOptions: { level: 6 },
+    });
 
-  const fileName = `lich-su-nop-bai-toan-he-thong-${toSafeTimestamp(new Date().toISOString())}.zip`;
+    const fileName = `lich-su-nop-bai-toan-he-thong-${toSafeTimestamp(new Date().toISOString())}.zip`;
 
-  return new NextResponse(new Uint8Array(archive), {
-    headers: {
-      "Content-Type": "application/zip",
-      "Content-Disposition": `attachment; filename="${fileName}"`,
-      "Cache-Control": "no-store",
-    },
+    return new NextResponse(new Uint8Array(archive), {
+      headers: {
+        "Content-Type": "application/zip",
+        "Content-Disposition": `attachment; filename="${fileName}"`,
+        "Cache-Control": "no-store",
+      },
+    });
   });
 }

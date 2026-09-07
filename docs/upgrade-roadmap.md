@@ -99,12 +99,12 @@ Checklist:
 Mục tiêu: hệ thống chạy ổn định hơn với lỗi nhỏ và có khả năng quan sát.
 
 Checklist:
-- [ ] Thêm timeout cho Judge API calls
-- [ ] Implement retry/backoff
-- [ ] Tạo middleware/utility xử lý lỗi tập trung
-- [ ] Infrastructure logging và alerting cơ bản
-- [ ] Thêm dashboard trạng thái hệ thống / storage
-- [ ] Bảo vệ endpoint admin bằng kiểm tra session + permission rõ ràng hơn
+- [x] Thêm timeout cho Judge API calls
+- [x] Implement retry/backoff
+- [x] Tạo middleware/utility xử lý lỗi tập trung
+- [x] Infrastructure logging và alerting cơ bản
+- [x] Thêm dashboard trạng thái hệ thống / storage
+- [x] Bảo vệ endpoint admin bằng kiểm tra session + permission rõ ràng hơn
 
 ### Giai đoạn 3: Kiểm thử và chất lượng code (2–4 tuần)
 

@@ -13,6 +13,7 @@ Hệ thống thu bài thi trực tuyến xây dựng bằng Next.js (App Router)
 2. Thiết lập tối thiểu:
    - `SESSION_SECRET` (bắt buộc khi chạy production)
    - `JUDGE_API_BASE_URL` (khuyến nghị)
+   - `JUDGE_API_TIMEOUT_MS`, `JUDGE_API_RETRY_COUNT`, `JUDGE_API_RETRY_DELAY_MS`
    - `DATA_DIR` hoặc các biến đường dẫn riêng cho DB / settings / submissions
 
 Xem chi tiết biến môi trường trong `.env.example`.
