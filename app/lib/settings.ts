@@ -1,9 +1,12 @@
 import "server-only";
 
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-
-const SETTINGS_FILE = path.join(process.cwd(), "thubai-settings.json");
+import {
+  LEGACY_SETTINGS_FILE,
+  SETTINGS_FILE,
+  SUBMISSION_STORAGE_DIR,
+} from "@/app/lib/env";
 
 export type AppSettings = {
   submissionStart: string | null;
@@ -14,24 +17,34 @@ export type AppSettings = {
 const DEFAULT: AppSettings = {
   submissionStart: null,
   submissionEnd: null,
-  storagePrefix: "/tmp",
+  storagePrefix: SUBMISSION_STORAGE_DIR,
 };
 
 export async function loadSettings(): Promise<AppSettings> {
-  try {
-    const raw = await readFile(SETTINGS_FILE, "utf8");
-    const parsed = JSON.parse(raw) as Partial<AppSettings>;
-    return {
-      submissionStart: parsed.submissionStart ?? null,
-      submissionEnd: parsed.submissionEnd ?? null,
-      storagePrefix: parsed.storagePrefix?.trim() || "/tmp",
-    };
-  } catch {
-    return { ...DEFAULT };
+  const candidateFiles = [SETTINGS_FILE];
+  if (LEGACY_SETTINGS_FILE !== SETTINGS_FILE) {
+    candidateFiles.push(LEGACY_SETTINGS_FILE);
   }
+
+  for (const candidateFile of candidateFiles) {
+    try {
+      const raw = await readFile(candidateFile, "utf8");
+      const parsed = JSON.parse(raw) as Partial<AppSettings>;
+      return {
+        submissionStart: parsed.submissionStart ?? null,
+        submissionEnd: parsed.submissionEnd ?? null,
+        storagePrefix: parsed.storagePrefix?.trim() || SUBMISSION_STORAGE_DIR,
+      };
+    } catch {
+      continue;
+    }
+  }
+
+  return { ...DEFAULT };
 }
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
+  await mkdir(path.dirname(SETTINGS_FILE), { recursive: true });
   await writeFile(SETTINGS_FILE, JSON.stringify(settings, null, 2), "utf8");
 }
 

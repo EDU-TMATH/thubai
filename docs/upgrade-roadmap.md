@@ -87,12 +87,12 @@ Về mặt kỹ thuật, hệ thống đang ở trạng thái “sử dụng đ�
 Mục tiêu: giảm rủi ro ngay lập tức.
 
 Checklist:
-- [ ] Cấu hình `SESSION_SECRET` bắt buộc
-- [ ] Tạo `.env.example`
-- [ ] Đưa các folder storage vào biến môi trường
-- [ ] Kiểm tra cookie security settings
-- [ ] Xóa hoặc giảm `console.log` nhạy cảm trong production
-- [ ] Viết tài liệu vận hành cơ bản cho dev và prod
+- [x] Cấu hình `SESSION_SECRET` bắt buộc
+- [x] Tạo `.env.example`
+- [x] Đưa các folder storage vào biến môi trường
+- [x] Kiểm tra cookie security settings
+- [x] Xóa hoặc giảm `console.log` nhạy cảm trong production
+- [x] Viết tài liệu vận hành cơ bản cho dev và prod
 
 ### Giai đoạn 2: Tăng độ tin cậy và vận hành (2–4 tuần)
 

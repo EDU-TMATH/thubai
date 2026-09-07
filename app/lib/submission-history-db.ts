@@ -2,9 +2,8 @@ import "server-only";
 
 import initSqlJs from "sql.js";
 import path from "node:path";
-import { readFile, writeFile } from "node:fs/promises";
-
-const DB_FILE = path.join(process.cwd(), "thubai-history.sqlite");
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { HISTORY_DB_FILE, LEGACY_HISTORY_DB_FILE } from "@/app/lib/env";
 
 type SqlJsDatabase = {
   run(sql: string, params?: unknown[]): void;
@@ -109,10 +108,18 @@ function ensureSchema(db: SqlJsDatabase) {
 
 async function openDatabase() {
   const SQL = await getSqlJs();
-  const fileBuffer = await readFile(DB_FILE).catch(() => null);
+  let fileBuffer = await readFile(HISTORY_DB_FILE).catch(() => null);
+  if (!fileBuffer && LEGACY_HISTORY_DB_FILE !== HISTORY_DB_FILE) {
+    fileBuffer = await readFile(LEGACY_HISTORY_DB_FILE).catch(() => null);
+  }
   const db = new SQL.Database(fileBuffer ? new Uint8Array(fileBuffer) : undefined);
   ensureSchema(db);
   return db;
+}
+
+async function writeDatabase(db: SqlJsDatabase) {
+  await mkdir(path.dirname(HISTORY_DB_FILE), { recursive: true });
+  await writeFile(HISTORY_DB_FILE, Buffer.from(db.export()));
 }
 
 function mapRows(result: Array<{ columns: string[]; values: unknown[][] }>): SubmissionHistoryRow[] {
@@ -173,7 +180,7 @@ export async function insertSubmissionHistory(input: SubmissionHistoryInput): Pr
         ],
       );
 
-      await writeFile(DB_FILE, Buffer.from(db.export()));
+      await writeDatabase(db);
     } finally {
       db.close();
     }
@@ -184,8 +191,6 @@ export async function getSubmissionHistoryForUser(
   username: string,
   limit = 200,
 ): Promise<SubmissionHistoryRow[]> {
-  console.log("[DB:QUERY] Fetching history for user", { username, limit });
-  
   return withFileLock(async () => {
     const db = await openDatabase();
     try {
@@ -211,9 +216,7 @@ export async function getSubmissionHistoryForUser(
         `,
         [username, limit],
       );
-      const result = mapRows(rows);
-      console.log("[DB:RESULT] History query complete", { username, returnedRows: result.length });
-      return result;
+      return mapRows(rows);
     } finally {
       db.close();
     }
@@ -396,7 +399,7 @@ export async function deleteSubmissionHistoryById(
         `,
         [submissionId, username, organizationShortName],
       );
-      await writeFile(DB_FILE, Buffer.from(db.export()));
+      await writeDatabase(db);
     } finally {
       db.close();
     }
@@ -408,7 +411,7 @@ export async function deleteAllSubmissionHistory(): Promise<void> {
     const db = await openDatabase();
     try {
       db.run("DELETE FROM submission_history;");
-      await writeFile(DB_FILE, Buffer.from(db.export()));
+      await writeDatabase(db);
     } finally {
       db.close();
     }

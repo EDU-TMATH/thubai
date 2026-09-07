@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Thubai
 
-## Getting Started
+Hệ thống thu bài thi trực tuyến xây dựng bằng Next.js (App Router), hỗ trợ đăng nhập Judge API, nộp file bài làm theo tổ chức, lịch sử nộp bài và trang quản trị.
 
-First, run the development server:
+## Yêu cầu môi trường
+
+- Node.js 20+
+- pnpm 11+
+
+## Cấu hình
+
+1. Tạo file `.env.local` từ `.env.example`.
+2. Thiết lập tối thiểu:
+   - `SESSION_SECRET` (bắt buộc khi chạy production)
+   - `JUDGE_API_BASE_URL` (khuyến nghị)
+   - `DATA_DIR` hoặc các biến đường dẫn riêng cho DB / settings / submissions
+
+Xem chi tiết biến môi trường trong `.env.example`.
+
+## Chạy local
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Mở `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Build production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm build
+pnpm start
+```
 
-## Learn More
+## Tài liệu vận hành
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Lộ trình nâng cấp: `docs/upgrade-roadmap.md`
+- Runbook dev/prod cơ bản: `docs/operations.md`
