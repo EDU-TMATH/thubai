@@ -104,6 +104,12 @@ function ensureSchema(db: SqlJsDatabase) {
   db.run(
     "CREATE INDEX IF NOT EXISTS idx_submission_history_saved_at ON submission_history(saved_at DESC);",
   );
+  db.run(
+    "CREATE INDEX IF NOT EXISTS idx_submission_history_username_org_saved_at ON submission_history(username, organization_short_name, saved_at DESC);",
+  );
+  db.run(
+    "CREATE INDEX IF NOT EXISTS idx_submission_history_org_saved_at ON submission_history(organization_short_name, saved_at DESC);",
+  );
 }
 
 async function openDatabase() {
@@ -273,21 +279,57 @@ export async function getSubmissionHistoryPage(
   pageSize: number,
   keyword = "",
 ): Promise<SubmissionHistoryPage> {
+  return getSubmissionHistoryPageFiltered(requestedPage, pageSize, {
+    keyword,
+  });
+}
+
+export async function getSubmissionHistoryPageForUser(
+  username: string,
+  requestedPage: number,
+  pageSize: number,
+  keyword = "",
+): Promise<SubmissionHistoryPage> {
+  return getSubmissionHistoryPageFiltered(requestedPage, pageSize, {
+    keyword,
+    username,
+  });
+}
+
+async function getSubmissionHistoryPageFiltered(
+  requestedPage: number,
+  pageSize: number,
+  filters: {
+    keyword?: string;
+    username?: string;
+  },
+): Promise<SubmissionHistoryPage> {
   return withFileLock(async () => {
     const db = await openDatabase();
     try {
       const normalizedPageSize = Math.max(1, Math.min(Math.trunc(pageSize), 100));
-      const normalizedKeyword = keyword.trim().toLowerCase();
-      const whereClause = normalizedKeyword
-        ? `WHERE instr(
-            lower(
-              username || ' ' || display_name || ' ' ||
-              organization_short_name || ' ' || organization_name
-            ),
-            ?
-          ) > 0`
-        : "";
-      const filterParams = normalizedKeyword ? [normalizedKeyword] : [];
+      const normalizedKeyword = filters.keyword?.trim().toLowerCase() ?? "";
+      const normalizedUsername = filters.username?.trim() ?? "";
+      const whereParts: string[] = [];
+      const filterParams: Array<string | number> = [];
+
+      if (normalizedUsername) {
+        whereParts.push("username = ?");
+        filterParams.push(normalizedUsername);
+      }
+
+      if (normalizedKeyword) {
+        whereParts.push(`instr(
+          lower(
+            username || ' ' || display_name || ' ' ||
+            organization_short_name || ' ' || organization_name
+          ),
+          ?
+        ) > 0`);
+        filterParams.push(normalizedKeyword);
+      }
+
+      const whereClause = whereParts.length ? `WHERE ${whereParts.join(" AND ")}` : "";
 
       const summaryResult = db.exec(
         `

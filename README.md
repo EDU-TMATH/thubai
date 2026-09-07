@@ -1,6 +1,7 @@
 # Thubai
 
 Hệ thống thu bài thi trực tuyến xây dựng bằng Next.js (App Router), hỗ trợ đăng nhập Judge API, nộp file bài làm theo tổ chức, lịch sử nộp bài và trang quản trị.
+Trang lịch sử và trang quản trị hiện có phân trang, tìm kiếm và export CSV; dashboard quản trị cũng hiển thị phân tích theo thời gian.
 
 ## Yêu cầu môi trường
 
@@ -15,6 +16,7 @@ Hệ thống thu bài thi trực tuyến xây dựng bằng Next.js (App Router)
    - `JUDGE_API_BASE_URL` (khuyến nghị)
    - `JUDGE_API_TIMEOUT_MS`, `JUDGE_API_RETRY_COUNT`, `JUDGE_API_RETRY_DELAY_MS`
    - `DATA_DIR` hoặc các biến đường dẫn riêng cho DB / settings / submissions
+   - Cấu hình theo tổ chức có thể chỉnh trong `/admin` để đặt khung thời gian nộp và tiền tố lưu trữ riêng
 
 Xem chi tiết biến môi trường trong `.env.example`.
 

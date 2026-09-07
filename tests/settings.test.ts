@@ -35,6 +35,13 @@ describe("settings helpers", () => {
       submissionStart: "2026-09-07T08:00:00.000Z",
       submissionEnd: "2026-09-07T10:00:00.000Z",
       storagePrefix: path.join(tempRoot, "custom-storage"),
+      organizationRules: {
+        oly: {
+          submissionStart: "2026-09-07T06:00:00.000Z",
+          submissionEnd: "2026-09-07T12:00:00.000Z",
+          storagePrefix: path.join(tempRoot, "oly-storage"),
+        },
+      },
     });
 
     const persisted = await loadSettings();
@@ -42,6 +49,13 @@ describe("settings helpers", () => {
       submissionStart: "2026-09-07T08:00:00.000Z",
       submissionEnd: "2026-09-07T10:00:00.000Z",
       storagePrefix: path.join(tempRoot, "custom-storage"),
+      organizationRules: {
+        oly: {
+          submissionStart: "2026-09-07T06:00:00.000Z",
+          submissionEnd: "2026-09-07T12:00:00.000Z",
+          storagePrefix: path.join(tempRoot, "oly-storage"),
+        },
+      },
     });
 
     const settingsPath = path.join(tempRoot, "thubai-settings.json");
@@ -64,6 +78,7 @@ describe("settings helpers", () => {
         submissionStart: "2026-09-07T08:00:00.000Z",
         submissionEnd: "2026-09-07T10:00:00.000Z",
         storagePrefix: "/tmp/thubai-test-data/submissions",
+        organizationRules: {},
       }),
     ).toMatchObject({ status: "open" });
 
@@ -72,6 +87,7 @@ describe("settings helpers", () => {
         submissionStart: "2026-09-07T10:00:00.000Z",
         submissionEnd: "2026-09-07T12:00:00.000Z",
         storagePrefix: "/tmp/thubai-test-data/submissions",
+        organizationRules: {},
       }),
     ).toMatchObject({ status: "pending" });
 
@@ -80,7 +96,36 @@ describe("settings helpers", () => {
         submissionStart: null,
         submissionEnd: null,
         storagePrefix: "/tmp/thubai-test-data/submissions",
+        organizationRules: {},
       }),
     ).toBe(true);
+  });
+
+  it("applies organization-specific submission rules", async () => {
+    vi.resetModules();
+    vi.stubEnv("DATA_DIR", "/tmp/thubai-test-data");
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-07T09:00:00.000Z"));
+
+    const { getEffectiveSubmissionConfig, getWindowStatus } = await importSettingsModule();
+    const settings = {
+      submissionStart: "2026-09-07T08:00:00.000Z",
+      submissionEnd: "2026-09-07T10:00:00.000Z",
+      storagePrefix: "/tmp/global-storage",
+      organizationRules: {
+        oly: {
+          submissionStart: "2026-09-07T06:00:00.000Z",
+          submissionEnd: "2026-09-07T12:00:00.000Z",
+          storagePrefix: "/tmp/oly-storage",
+        },
+      },
+    };
+
+    expect(getEffectiveSubmissionConfig(settings, "OLY")).toEqual({
+      submissionStart: "2026-09-07T06:00:00.000Z",
+      submissionEnd: "2026-09-07T12:00:00.000Z",
+      storagePrefix: "/tmp/oly-storage",
+    });
+    expect(getWindowStatus(settings, "oly")).toMatchObject({ status: "open" });
   });
 });

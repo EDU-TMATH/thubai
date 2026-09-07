@@ -18,6 +18,7 @@ export type SubmissionRecord = {
   savedAt: string;
   fileCount: number;
   totalBytes: number;
+  destination: string;
 };
 
 export type SavedSubmission = {
@@ -60,6 +61,64 @@ function sanitizeFilename(filename: string) {
   const { baseName, extension } = splitFilename(path.basename(filename));
   const sanitizedBase = sanitizeSegment(baseName);
   return `${sanitizedBase}${extension}`;
+}
+
+function formatSubmissionPartition(savedAt: string) {
+  const date = new Date(savedAt);
+  if (Number.isNaN(date.getTime())) {
+    return {
+      year: "unknown-year",
+      month: "unknown-month",
+    };
+  }
+
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return {
+    year: String(date.getUTCFullYear()),
+    month: pad(date.getUTCMonth() + 1),
+  };
+}
+
+function buildSubmissionDestination(
+  baseDir: string,
+  organizationShortName: string,
+  userIdentifier: string,
+  submissionId: string,
+  savedAt: string,
+) {
+  const partition = formatSubmissionPartition(savedAt);
+  return path.join(
+    baseDir,
+    sanitizeSegment(organizationShortName),
+    partition.year,
+    partition.month,
+    sanitizeSegment(userIdentifier),
+    submissionId,
+  );
+}
+
+async function walkSubmissionDirectories(
+  currentPath: string,
+  collector: string[],
+): Promise<void> {
+  let entries;
+  try {
+    entries = await readdir(currentPath, { withFileTypes: true });
+  } catch {
+    return;
+  }
+
+  for (const entry of entries) {
+    const nextPath = path.join(currentPath, entry.name);
+    if (entry.isDirectory()) {
+      await walkSubmissionDirectories(nextPath, collector);
+      continue;
+    }
+
+    if (entry.isFile() && entry.name === "metadata.json") {
+      collector.push(nextPath);
+    }
+  }
 }
 
 function getSanitizedFilenames(files: File[]) {
@@ -118,13 +177,14 @@ export async function saveSubmission(
   }
 
   const submissionId = `${Date.now()}-${randomUUID().slice(0, 8)}`;
-  const destination = path.join(
-    baseDir,
-    sanitizeSegment(organization.short_name),
-    sanitizeSegment(`${user.id}_${user.username}`),
-    submissionId,
-  );
   const savedAt = new Date().toISOString();
+  const destination = buildSubmissionDestination(
+    baseDir,
+    organization.short_name,
+    `${user.id}_${user.username}`,
+    submissionId,
+    savedAt,
+  );
 
   await mkdir(destination, { recursive: true });
 
@@ -139,6 +199,7 @@ export async function saveSubmission(
     path.join(destination, "metadata.json"),
     JSON.stringify(
       {
+        storageVersion: 2,
         user: {
           id: user.id,
           username: user.username,
@@ -146,6 +207,7 @@ export async function saveSubmission(
         },
         organization,
         savedAt,
+        destination,
         files: files.map((file, index) => ({
           name: sanitizedFilenames[index],
           size: file.size,
@@ -169,64 +231,39 @@ export async function saveSubmission(
 
 export async function listSubmissions(baseDir: string): Promise<SubmissionRecord[]> {
   const results: SubmissionRecord[] = [];
+  const metadataFiles: string[] = [];
+  await walkSubmissionDirectories(baseDir, metadataFiles);
 
-  let orgEntries;
-  try {
-    orgEntries = await readdir(baseDir, { withFileTypes: true });
-  } catch {
-    return [];
-  }
-
-  for (const orgEntry of orgEntries) {
-    if (!orgEntry.isDirectory()) continue;
-    const orgPath = path.join(baseDir, orgEntry.name);
-
-    let userEntries;
+  for (const metadataPath of metadataFiles) {
     try {
-      userEntries = await readdir(orgPath, { withFileTypes: true });
+      const raw = await readFile(metadataPath, "utf8");
+      const meta = JSON.parse(raw) as {
+        user?: { id?: number; username?: string; displayName?: string };
+        organization?: { name?: string; short_name?: string };
+        savedAt?: string;
+        destination?: string;
+        files?: { size?: number }[];
+      };
+      const destination = meta.destination ?? path.dirname(metadataPath);
+      const fileList = meta.files ?? [];
+      const resolvedPath = path.resolve(destination);
+      const pathParts = resolvedPath.split(path.sep).filter(Boolean);
+      const fallbackSubmissionId = path.basename(resolvedPath);
+      const fallbackUsername = pathParts.at(-2) ?? "unknown";
+      const fallbackOrg = pathParts.at(-5) ?? pathParts.at(-1) ?? "unknown";
+      results.push({
+        submissionId: fallbackSubmissionId,
+        org: meta.organization?.short_name ?? fallbackOrg,
+        username: meta.user?.username ?? fallbackUsername,
+        displayName: meta.user?.displayName ?? fallbackUsername,
+        organizationName: meta.organization?.name ?? fallbackOrg,
+        savedAt: meta.savedAt ?? new Date(0).toISOString(),
+        fileCount: fileList.length,
+        totalBytes: fileList.reduce((s, f) => s + (f.size ?? 0), 0),
+        destination: resolvedPath,
+      });
     } catch {
-      continue;
-    }
-
-    for (const userEntry of userEntries) {
-      if (!userEntry.isDirectory()) continue;
-      const userPath = path.join(orgPath, userEntry.name);
-
-      let subEntries;
-      try {
-        subEntries = await readdir(userPath, { withFileTypes: true });
-      } catch {
-        continue;
-      }
-
-      for (const subEntry of subEntries) {
-        if (!subEntry.isDirectory()) continue;
-        try {
-          const raw = await readFile(
-            path.join(userPath, subEntry.name, "metadata.json"),
-            "utf8",
-          );
-          const meta = JSON.parse(raw) as {
-            user?: { displayName?: string };
-            organization?: { name?: string };
-            savedAt?: string;
-            files?: { size?: number }[];
-          };
-          const fileList = meta.files ?? [];
-          results.push({
-            submissionId: subEntry.name,
-            org: orgEntry.name,
-            username: userEntry.name,
-            displayName: meta.user?.displayName ?? userEntry.name,
-            organizationName: meta.organization?.name ?? orgEntry.name,
-            savedAt: meta.savedAt ?? new Date(0).toISOString(),
-            fileCount: fileList.length,
-            totalBytes: fileList.reduce((s, f) => s + (f.size ?? 0), 0),
-          });
-        } catch {
-          /* skip unreadable entries */
-        }
-      }
+      /* skip unreadable entries */
     }
   }
 
@@ -239,10 +276,19 @@ export async function deleteSubmission(
   username: string,
   submissionId: string,
 ): Promise<void> {
-  await rm(path.join(baseDir, org, username, submissionId), {
-    recursive: true,
-    force: true,
-  });
+  const submissions = await listSubmissions(baseDir);
+  const match = submissions.find(
+    (submission) =>
+      submission.org === org
+      && submission.username === username
+      && submission.submissionId === submissionId,
+  );
+
+  if (!match) {
+    return;
+  }
+
+  await deleteSubmissionAtDestination(match.destination, submissionId);
 }
 
 export async function deleteSubmissionAtDestination(
@@ -268,12 +314,7 @@ export async function deleteAllSubmissions(baseDir: string): Promise<void> {
   const submissions = await listSubmissions(baseDir);
   for (const submission of submissions) {
     try {
-      await deleteSubmission(
-        baseDir,
-        submission.org,
-        submission.username,
-        submission.submissionId,
-      );
+      await deleteSubmissionAtDestination(submission.destination, submission.submissionId);
     } catch {
       /* continue deleting remaining submissions */
     }

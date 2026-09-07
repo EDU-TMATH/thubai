@@ -19,6 +19,17 @@ type OrganizationOption = {
   short_name: string;
 };
 
+type SubmissionSettings = {
+  submissionStart: string | null;
+  submissionEnd: string | null;
+  storagePrefix: string;
+  organizationRules: Record<string, {
+    submissionStart: string | null;
+    submissionEnd: string | null;
+    storagePrefix: string | null;
+  }>;
+};
+
 const acceptedExtensions = [".cpp", ".py", ".pas"];
 const maxTotalBytes = 1024 * 1024;
 const subscribeToClientEnvironment = () => () => {};
@@ -29,6 +40,13 @@ type SubmissionFormProps = {
   username: string;
   displayName: string;
   organizations: OrganizationOption[];
+  submissionSettings: SubmissionSettings;
+  globalWindowStatus: {
+    status: "open" | "pending" | "closed" | "unconfigured";
+    start: Date | null;
+    end: Date | null;
+  };
+  storagePrefix: string;
 };
 
 function formatBytes(value: number) {
@@ -47,7 +65,48 @@ function getFileKey(file: File) {
   return `${file.name}:${file.size}:${file.lastModified}`;
 }
 
-export function SubmissionForm({ username, displayName, organizations }: SubmissionFormProps) {
+function getEffectiveSubmissionConfig(
+  settings: SubmissionSettings,
+  organizationShortName?: string | null,
+) {
+  const orgKey = organizationShortName?.trim().toLowerCase();
+  const orgRule = orgKey ? settings.organizationRules[orgKey] ?? null : null;
+
+  return {
+    submissionStart: orgRule?.submissionStart ?? settings.submissionStart,
+    submissionEnd: orgRule?.submissionEnd ?? settings.submissionEnd,
+    storagePrefix: orgRule?.storagePrefix ?? settings.storagePrefix,
+  };
+}
+
+function getWindowStatus(
+  config: Pick<SubmissionSettings, "submissionStart" | "submissionEnd">,
+): {
+  status: "open" | "pending" | "closed" | "unconfigured";
+  start: Date | null;
+  end: Date | null;
+} {
+  if (!config.submissionStart || !config.submissionEnd) {
+    return { status: "unconfigured", start: null, end: null };
+  }
+
+  const now = new Date();
+  const start = new Date(config.submissionStart);
+  const end = new Date(config.submissionEnd);
+
+  if (now < start) return { status: "pending", start, end };
+  if (now > end) return { status: "closed", start, end };
+  return { status: "open", start, end };
+}
+
+export function SubmissionForm({
+  username,
+  displayName,
+  organizations,
+  submissionSettings,
+  globalWindowStatus,
+  storagePrefix,
+}: SubmissionFormProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [files, setFiles] = useState<File[]>([]);
@@ -71,6 +130,14 @@ export function SubmissionForm({ username, displayName, organizations }: Submiss
   const selectedOrganization = useMemo(
     () => organizations.find((organization) => String(organization.id) === organizationId) ?? null,
     [organizationId, organizations],
+  );
+  const selectedSubmissionConfig = useMemo(
+    () => getEffectiveSubmissionConfig(submissionSettings, selectedOrganization?.short_name),
+    [selectedOrganization?.short_name, submissionSettings],
+  );
+  const selectedWindowStatus = useMemo(
+    () => getWindowStatus(selectedSubmissionConfig),
+    [selectedSubmissionConfig],
   );
 
   useEffect(() => {
@@ -278,6 +345,44 @@ export function SubmissionForm({ username, displayName, organizations }: Submiss
           <SignOutIcon size={18} weight="bold" aria-hidden="true" />
           {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
         </button>
+      </div>
+
+      <div className="rounded-[28px] border border-(--line) bg-white/65 p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--accent-deep)">
+          Cấu hình hiện hành
+        </p>
+        <div className="mt-3 grid gap-3 md:grid-cols-2">
+          <div className="rounded-2xl border border-(--line) bg-white/70 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">
+              Cửa sổ thu bài
+            </p>
+            <p className={`mt-1 text-sm font-semibold ${selectedWindowStatus.status === "open" || selectedWindowStatus.status === "unconfigured" ? "text-emerald-700" : selectedWindowStatus.status === "pending" ? "text-amber-700" : "text-red-700"}`}>
+              {selectedOrganization
+                ? selectedWindowStatus.status === "unconfigured"
+                  ? "Tổ chức đang dùng cửa sổ chung"
+                  : selectedWindowStatus.status === "open"
+                    ? "Tổ chức đang mở"
+                    : selectedWindowStatus.status === "pending"
+                      ? "Tổ chức chưa đến giờ"
+                      : "Tổ chức đã đóng"
+                : globalWindowStatus.status === "unconfigured"
+                  ? "Chưa chọn tổ chức — dùng cửa sổ chung"
+                  : globalWindowStatus.status === "open"
+                    ? "Cửa sổ chung đang mở"
+                    : globalWindowStatus.status === "pending"
+                      ? "Cửa sổ chung chưa đến giờ"
+                      : "Cửa sổ chung đã đóng"}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-(--line) bg-white/70 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--accent-deep)">
+              Thư mục lưu
+            </p>
+            <p className="mt-1 break-all font-mono text-sm text-[rgba(31,26,23,0.75)]">
+              {selectedSubmissionConfig.storagePrefix || storagePrefix}
+            </p>
+          </div>
+        </div>
       </div>
 
       <form className="space-y-5" onSubmit={handleSubmit}>

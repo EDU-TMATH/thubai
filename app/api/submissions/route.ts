@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getSession } from "@/app/lib/auth";
 import { extractOrganizations, fetchCurrentUser } from "@/app/lib/judge-api";
-import { isSubmissionOpen, loadSettings } from "@/app/lib/settings";
+import { getEffectiveSubmissionConfig, isSubmissionOpen, loadSettings } from "@/app/lib/settings";
 import { insertSubmissionHistory } from "@/app/lib/submission-history-db";
 import { saveSubmission, validateSubmissionFiles } from "@/app/lib/submissions";
 
@@ -51,12 +51,25 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
+    const effectiveSettings = getEffectiveSubmissionConfig(settings, selectedOrganization.short_name);
+    if (!isSubmissionOpen(settings, selectedOrganization.short_name)) {
+          return NextResponse.json(
+              { error: "Tổ chức đã chọn hiện không trong thời gian thu bài." },
+              { status: 403 },
+          );
+    }
+
     let result;
     try {
-        result = await saveSubmission(currentUser, selectedOrganization, files, settings.storagePrefix);
+          result = await saveSubmission(
+              currentUser,
+              selectedOrganization,
+              files,
+              effectiveSettings.storagePrefix,
+          );
     } catch {
-        return NextResponse.json(
-            {
+          return NextResponse.json(
+              {
                 error:
                     "Không thể lưu bài nộp vào thư mục cấu hình hiện tại. Vui lòng liên hệ quản trị viên.",
             },

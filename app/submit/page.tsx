@@ -4,7 +4,7 @@ import { ClockIcon, GaugeIcon, GearIcon, UploadSimpleIcon } from "@phosphor-icon
 import { PageHeader } from "@/app/components/page-header";
 import { getSession } from "@/app/lib/auth";
 import { extractOrganizations, fetchCurrentUser } from "@/app/lib/judge-api";
-import { getWindowStatus, loadSettings } from "@/app/lib/settings";
+import { getEffectiveSubmissionConfig, getWindowStatus, loadSettings } from "@/app/lib/settings";
 import { MAX_TOTAL_UPLOAD_SIZE } from "@/app/lib/submissions";
 import { SubmissionForm } from "@/app/submit/submission-form";
 
@@ -38,6 +38,7 @@ export default async function SubmitPage() {
   const organizations = extractOrganizations(currentUser);
   const settings = await loadSettings();
   const { status, start, end } = getWindowStatus(settings);
+  const effectiveSettings = getEffectiveSubmissionConfig(settings);
 
   const windowLabel =
     status === "unconfigured"
@@ -122,6 +123,9 @@ export default async function SubmitPage() {
           username={currentUser.username}
           displayName={currentUser.display_name}
           organizations={organizations}
+          submissionSettings={settings}
+          globalWindowStatus={{ status, start, end }}
+          storagePrefix={effectiveSettings.storagePrefix}
         />
       </section>
     </main>

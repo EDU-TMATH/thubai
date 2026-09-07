@@ -40,17 +40,39 @@ Mặc định theo `DATA_DIR`:
 - App settings: `thubai-settings.json`
 - Bài nộp: thư mục `submissions/`
 
+Mẫu cấu trúc lưu bài mới:
+- `DATA_DIR/<org>/<YYYY>/<MM>/<user>/<submissionId>/`
+
 Fallback tương thích:
 - Nếu chưa có file settings/DB mới, hệ thống vẫn đọc từ vị trí cũ ở project root (`thubai-settings.json`, `thubai-history.sqlite`).
 
-## 4. Build và khởi động
+## 4. Backup và khôi phục
+
+Khuyến nghị chụp snapshot toàn bộ `DATA_DIR` theo lịch định kỳ.
+
+Ví dụ backup:
+```bash
+tar -czf thubai-backup-$(date +%Y%m%d-%H%M%S).tar.gz -C /srv thubai-data
+```
+
+Ví dụ restore:
+```bash
+systemctl stop thubai
+rm -rf /srv/thubai-data
+tar -xzf thubai-backup.tar.gz -C /srv
+systemctl start thubai
+```
+
+Luôn dừng service trước khi restore để tránh ghi chồng dữ liệu.
+
+## 5. Build và khởi động
 
 ```bash
 pnpm build
 pnpm start
 ```
 
-## 5. Kiểm tra nhanh sau deploy
+## 6. Kiểm tra nhanh sau deploy
 
 1. Truy cập `/login` và đăng nhập.
 2. Nộp một bài thử nghiệm.
@@ -60,3 +82,16 @@ pnpm start
    - Judge API đang hoạt động
    - Storage có thể đọc/ghi
    - File settings và history DB hiển thị đúng đường dẫn
+
+## 7. Xuất dữ liệu và theo dõi lịch sử
+
+- Trang `/history` và `/admin/history` đều hỗ trợ phân trang, tìm kiếm và export CSV.
+- Nếu cần tra cứu nhanh, ưu tiên lọc theo tên người dùng, tổ chức hoặc mã nộp thay vì tải toàn bộ dữ liệu.
+
+## 8. Cấu hình theo tổ chức
+
+- Trong `/admin`, phần cấu hình theo tổ chức cho phép đặt:
+  - `submissionStart`
+  - `submissionEnd`
+  - `storagePrefix`
+- Nếu một tổ chức chưa có cấu hình riêng, hệ thống sẽ dùng cấu hình chung.

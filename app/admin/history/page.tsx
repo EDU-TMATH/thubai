@@ -102,6 +102,12 @@ export default async function AdminHistoryPage({ searchParams }: AdminHistoryPag
               Tải xuống theo tổ chức
             </a>
             <a
+              href={`/api/admin/history/export${keyword ? `?q=${encodeURIComponent(keyword)}` : ""}`}
+              className="inline-flex items-center justify-center rounded-2xl border border-(--line) bg-white/70 px-4 py-2.5 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
+            >
+              Xuất CSV
+            </a>
+            <a
               href="/history"
               className="inline-flex items-center justify-center rounded-2xl border border-(--line) bg-white/70 px-4 py-2.5 text-sm font-semibold text-(--accent-deep) transition hover:bg-white"
             >

@@ -122,22 +122,22 @@ Checklist:
 Mục tiêu: chuẩn bị hệ thống cho quy mô lớn hơn.
 
 Checklist:
-- [ ] Chuyển storage sang cấu trúc theo tổ chức / tháng / năm
-- [ ] Tối ưu schema SQLite hoặc migrate sang Postgres nếu cần
-- [ ] Thêm backup và restore policy
-- [ ] Tối ưu việc đọc/thêm lịch sử bài nộp
-- [ ] Thêm indexing và query tối ưu phù hợp
+- [x] Chuyển storage sang cấu trúc theo tổ chức / tháng / năm
+- [x] Tối ưu schema SQLite hoặc migrate sang Postgres nếu cần
+- [x] Thêm backup và restore policy
+- [x] Tối ưu việc đọc/thêm lịch sử bài nộp
+- [x] Thêm indexing và query tối ưu phù hợp
 
 ### Giai đoạn 5: Nâng cấp trải nghiệm và tính năng mở rộng (theo tiến độ)
 
 Mục tiêu: nâng tầm hệ thống từ tool nội bộ thành nền tảng ổn định.
 
 Checklist:
-- [ ] Phân trang lịch sử nộp bài
-- [ ] Tìm kiếm theo tên người dùng / tổ chức / mã nộp
-- [ ] Export dữ liệu rõ ràng hơn
-- [ ] Dashboard phân tích số lượng bài nộp theo thời gian
-- [ ] Quản lý cấu hình linh hoạt hơn theo tổ chức
+- [x] Phân trang lịch sử nộp bài
+- [x] Tìm kiếm theo tên người dùng / tổ chức / mã nộp
+- [x] Export dữ liệu rõ ràng hơn
+- [x] Dashboard phân tích số lượng bài nộp theo thời gian
+- [x] Quản lý cấu hình linh hoạt hơn theo tổ chức
 
 ## 5. Đề xuất ưu tiên triển khai
 

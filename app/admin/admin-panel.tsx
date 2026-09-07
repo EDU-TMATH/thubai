@@ -14,6 +14,11 @@ type AppSettings = {
   submissionStart: string | null;
   submissionEnd: string | null;
   storagePrefix: string;
+  organizationRules: Record<string, {
+    submissionStart: string | null;
+    submissionEnd: string | null;
+    storagePrefix: string | null;
+  }>;
 };
 
 type SubmissionRecord = {
@@ -53,6 +58,17 @@ type SystemStatus = {
     historyDbFile: string;
     historyDbExists: boolean;
   };
+};
+
+type Analytics = {
+  dailyTrend: Array<{ date: string; count: number }>;
+  organizationBreakdown: Array<{
+    org: string;
+    organizationName: string;
+    count: number;
+    files: number;
+    bytes: number;
+  }>;
 };
 
 type Tab = "settings" | "stats" | "submissions";
@@ -128,12 +144,16 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
   const [startInput, setStartInput] = useState(toDatetimeLocal(initialSettings.submissionStart));
   const [endInput, setEndInput] = useState(toDatetimeLocal(initialSettings.submissionEnd));
   const [prefixInput, setPrefixInput] = useState(initialSettings.storagePrefix);
+  const [orgRulesInput, setOrgRulesInput] = useState(
+    JSON.stringify(initialSettings.organizationRules, null, 2),
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   // Stats state
   const [submissions, setSubmissions] = useState<SubmissionRecord[] | null>(null);
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -156,13 +176,16 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
       }
       const data = (await res.json()) as {
         submissions: SubmissionRecord[];
+        analytics: Analytics;
         system: SystemStatus;
       };
       setSubmissions(data.submissions);
+      setAnalytics(data.analytics);
       setSystemStatus(data.system);
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : "Lỗi tải dữ liệu.");
       setSubmissions([]);
+      setAnalytics(null);
       setSystemStatus(null);
     } finally {
       setIsLoading(false);
@@ -181,10 +204,14 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
     setIsSaving(true);
     setSaveMsg(null);
     try {
+      const parsedOrgRules = orgRulesInput.trim()
+        ? (JSON.parse(orgRulesInput) as AppSettings["organizationRules"])
+        : {};
       const body: AppSettings = {
         submissionStart: fromDatetimeLocal(startInput),
         submissionEnd: fromDatetimeLocal(endInput),
         storagePrefix: prefixInput.trim() || initialSettings.storagePrefix,
+        organizationRules: parsedOrgRules,
       };
       const res = await fetch("/api/admin/settings", {
         method: "POST",
@@ -197,8 +224,11 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
         const data = (await res.json()) as { error?: string };
         setSaveMsg({ ok: false, text: data.error ?? "Lỗi lưu cài đặt." });
       }
-    } catch {
-      setSaveMsg({ ok: false, text: "Không thể kết nối máy chủ." });
+    } catch (error) {
+      setSaveMsg({
+        ok: false,
+        text: error instanceof SyntaxError ? "JSON cấu hình theo tổ chức không hợp lệ." : "Không thể kết nối máy chủ.",
+      });
     } finally {
       setIsSaving(false);
       setTimeout(() => setSaveMsg(null), 4000);
@@ -339,6 +369,30 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
             </p>
           </div>
 
+          <div className="rounded-[20px] border border-(--line) bg-white/60 p-5">
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-(--accent-deep)">
+              Cấu hình theo tổ chức (JSON)
+            </h3>
+            <label className="space-y-1.5">
+              <span className="block text-xs font-medium text-[rgba(31,26,23,0.6)]">
+                <code className="font-mono">short_name</code> &rarr;{" "}
+                <code className="font-mono">submissionStart</code>,{" "}
+                <code className="font-mono">submissionEnd</code>,{" "}
+                <code className="font-mono">storagePrefix</code>
+              </span>
+              <textarea
+                value={orgRulesInput}
+                onChange={(e) => setOrgRulesInput(e.target.value)}
+                rows={10}
+                spellCheck={false}
+                className="w-full rounded-[14px] border border-(--line) bg-white/80 px-3 py-2 font-mono text-xs leading-6 focus:outline-none focus:ring-2 focus:ring-(--accent)/40"
+              />
+            </label>
+            <p className="mt-3 text-xs text-[rgba(31,26,23,0.5)]">
+              Nếu để trống, tổ chức sẽ dùng cấu hình chung. Có thể đặt riêng thời gian và thư mục lưu cho từng tổ chức.
+            </p>
+          </div>
+
           {/* Save button */}
           <div className="flex items-center gap-4">
             <button
@@ -401,6 +455,62 @@ export default function AdminPanel({ initialSettings }: { initialSettings: AppSe
                 <p className="mt-1 break-all font-mono text-xs text-[rgba(31,26,23,0.62)]">
                   {systemStatus.storage.path}
                 </p>
+              </div>
+            </div>
+          )}
+
+          {analytics && (
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="rounded-[20px] border border-(--line) bg-white/60 p-4">
+                <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-(--accent-deep)">
+                  Xu hướng nộp 14 ngày
+                </p>
+                <div className="flex items-end gap-2">
+                  {analytics.dailyTrend.map((item) => {
+                    const maxCount = Math.max(...analytics.dailyTrend.map((entry) => entry.count), 1);
+                    const height = Math.max(18, Math.round((item.count / maxCount) * 120));
+                    return (
+                      <div key={item.date} className="flex min-w-0 flex-1 flex-col items-center gap-2">
+                        <div className="flex h-[132px] w-full items-end justify-center">
+                          <div
+                            className="w-full rounded-t-xl bg-(--accent)"
+                            style={{ height: `${height}px` }}
+                            title={`${item.date}: ${item.count}`}
+                          />
+                        </div>
+                        <div className="text-[10px] text-[rgba(31,26,23,0.55)]">
+                          {item.date.slice(5)}
+                        </div>
+                        <div className="text-xs font-semibold text-(--accent-deep)">{item.count}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="rounded-[20px] border border-(--line) bg-white/60 p-4">
+                <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-(--accent-deep)">
+                  Top tổ chức
+                </p>
+                <div className="space-y-3">
+                  {analytics.organizationBreakdown.slice(0, 5).map((item) => (
+                    <div key={item.org} className="rounded-2xl border border-(--line) bg-white/70 p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="font-semibold">{item.organizationName}</p>
+                          <p className="text-xs text-[rgba(31,26,23,0.55)]">{item.org}</p>
+                        </div>
+                        <div className="text-right text-sm font-semibold text-(--accent-deep)">
+                          {item.count} lượt
+                        </div>
+                      </div>
+                      <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-[rgba(31,26,23,0.62)]">
+                        <span>{item.files} file</span>
+                        <span>{Math.round(item.bytes / 1024)} KB</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
