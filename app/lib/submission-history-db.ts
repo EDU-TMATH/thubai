@@ -3,7 +3,7 @@ import "server-only";
 import initSqlJs from "sql.js";
 import path from "node:path";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { HISTORY_DB_FILE, LEGACY_HISTORY_DB_FILE } from "@/app/lib/env";
+import { getHistoryDbFile, getLegacyHistoryDbFile } from "@/app/lib/env";
 
 type SqlJsDatabase = {
   run(sql: string, params?: unknown[]): void;
@@ -108,9 +108,11 @@ function ensureSchema(db: SqlJsDatabase) {
 
 async function openDatabase() {
   const SQL = await getSqlJs();
-  let fileBuffer = await readFile(HISTORY_DB_FILE).catch(() => null);
-  if (!fileBuffer && LEGACY_HISTORY_DB_FILE !== HISTORY_DB_FILE) {
-    fileBuffer = await readFile(LEGACY_HISTORY_DB_FILE).catch(() => null);
+  const historyDbFile = getHistoryDbFile();
+  const legacyHistoryDbFile = getLegacyHistoryDbFile();
+  let fileBuffer = await readFile(historyDbFile).catch(() => null);
+  if (!fileBuffer && legacyHistoryDbFile !== historyDbFile) {
+    fileBuffer = await readFile(legacyHistoryDbFile).catch(() => null);
   }
   const db = new SQL.Database(fileBuffer ? new Uint8Array(fileBuffer) : undefined);
   ensureSchema(db);
@@ -118,8 +120,9 @@ async function openDatabase() {
 }
 
 async function writeDatabase(db: SqlJsDatabase) {
-  await mkdir(path.dirname(HISTORY_DB_FILE), { recursive: true });
-  await writeFile(HISTORY_DB_FILE, Buffer.from(db.export()));
+  const historyDbFile = getHistoryDbFile();
+  await mkdir(path.dirname(historyDbFile), { recursive: true });
+  await writeFile(historyDbFile, Buffer.from(db.export()));
 }
 
 function mapRows(result: Array<{ columns: string[]; values: unknown[][] }>): SubmissionHistoryRow[] {

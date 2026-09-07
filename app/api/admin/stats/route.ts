@@ -4,7 +4,10 @@ import { constants } from "node:fs";
 
 import { requireSuperuser } from "@/app/lib/admin-auth";
 import { withRouteErrorHandling } from "@/app/lib/api-utils";
-import { HISTORY_DB_FILE, SETTINGS_FILE } from "@/app/lib/env";
+import {
+  getHistoryDbFile,
+  getSettingsFile,
+} from "@/app/lib/env";
 import { getSubmissionHistoryAll } from "@/app/lib/submission-history-db";
 import { loadSettings } from "@/app/lib/settings";
 
@@ -60,8 +63,8 @@ export async function GET(request: Request) {
     }));
 
     const [settingsExists, historyDbExists, storage] = await Promise.all([
-      pathExists(SETTINGS_FILE),
-      pathExists(HISTORY_DB_FILE),
+      pathExists(getSettingsFile()),
+      pathExists(getHistoryDbFile()),
       getStorageStatus(settings.storagePrefix),
     ]);
 
@@ -74,9 +77,9 @@ export async function GET(request: Request) {
         },
         storage,
         files: {
-          settingsFile: SETTINGS_FILE,
+          settingsFile: getSettingsFile(),
           settingsExists,
-          historyDbFile: HISTORY_DB_FILE,
+          historyDbFile: getHistoryDbFile(),
           historyDbExists,
         },
       },

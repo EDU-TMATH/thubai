@@ -26,18 +26,30 @@ export function isProductionEnv(): boolean {
   return isProduction;
 }
 
-export const DATA_DIR = resolvePathFromRoot(
-  readEnv("DATA_DIR") ?? path.join("var", "thubai"),
-);
-export const SUBMISSION_STORAGE_DIR = resolvePathFromRoot(
-  readEnv("SUBMISSION_STORAGE_DIR") ?? path.join(DATA_DIR, "submissions"),
-);
-export const SETTINGS_FILE = resolvePathFromRoot(
-  readEnv("SETTINGS_FILE") ?? path.join(DATA_DIR, "thubai-settings.json"),
-);
-export const HISTORY_DB_FILE = resolvePathFromRoot(
-  readEnv("DB_PATH") ?? path.join(DATA_DIR, "thubai-history.sqlite"),
-);
+function resolveConfiguredPath(name: string, fallback: string): string {
+  return resolvePathFromRoot(readEnv(name) ?? fallback);
+}
 
-export const LEGACY_SETTINGS_FILE = path.join(process.cwd(), "thubai-settings.json");
-export const LEGACY_HISTORY_DB_FILE = path.join(process.cwd(), "thubai-history.sqlite");
+export function getDataDir(): string {
+  return resolveConfiguredPath("DATA_DIR", path.join("var", "thubai"));
+}
+
+export function getSubmissionStorageDir(): string {
+  return resolveConfiguredPath("SUBMISSION_STORAGE_DIR", path.join(getDataDir(), "submissions"));
+}
+
+export function getSettingsFile(): string {
+  return resolveConfiguredPath("SETTINGS_FILE", path.join(getDataDir(), "thubai-settings.json"));
+}
+
+export function getHistoryDbFile(): string {
+  return resolveConfiguredPath("DB_PATH", path.join(getDataDir(), "thubai-history.sqlite"));
+}
+
+export function getLegacySettingsFile(): string {
+  return path.join(process.cwd(), "thubai-settings.json");
+}
+
+export function getLegacyHistoryDbFile(): string {
+  return path.join(process.cwd(), "thubai-history.sqlite");
+}
